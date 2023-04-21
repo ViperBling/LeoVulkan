@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec01_VulkanTest", "Lec01_VulkanTest\Lec01_VulkanTest.vcxproj", "{D56577D2-573C-43C7-9B7F-0036B7A1D330}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec02_Triangle", "Lec02_Triangle\Lec02_Triangle.vcxproj", "{F0785A06-7509-4082-A2B3-DAA7114B7547}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D56577D2-573C-43C7-9B7F-0036B7A1D330}.Debug|x64.ActiveCfg = Debug|x64
+		{D56577D2-573C-43C7-9B7F-0036B7A1D330}.Debug|x64.Build.0 = Debug|x64
+		{D56577D2-573C-43C7-9B7F-0036B7A1D330}.Release|x64.ActiveCfg = Release|x64
+		{D56577D2-573C-43C7-9B7F-0036B7A1D330}.Release|x64.Build.0 = Release|x64
+		{F0785A06-7509-4082-A2B3-DAA7114B7547}.Debug|x64.ActiveCfg = Debug|x64
+		{F0785A06-7509-4082-A2B3-DAA7114B7547}.Debug|x64.Build.0 = Debug|x64
+		{F0785A06-7509-4082-A2B3-DAA7114B7547}.Release|x64.ActiveCfg = Release|x64
+		{F0785A06-7509-4082-A2B3-DAA7114B7547}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BE97B92A-4D66-45A3-A1DE-E81711ECE476}
+	EndGlobalSection
+EndGlobal
