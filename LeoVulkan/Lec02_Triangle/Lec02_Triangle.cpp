@@ -1,5 +1,8 @@
-﻿#define GLFW_INCLUDE_VULKAN
+﻿#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -7,12 +10,14 @@
 #include <vector>
 #include <map>
 #include <optional>
+#include <set>
 #include <glm/ext/scalar_uint_sized.hpp>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
 const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 #ifdef NDEBUG   // No Debug
     const bool enableValidationLayers = false;
@@ -45,9 +50,10 @@ void DestroyDebugUtilsMessengerEXT(
 struct QueueFamilyIndices
 {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
     bool isComplete()
     {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
@@ -78,6 +84,7 @@ private:
     {
         createInstance();
         setupDebugMessenger();
+        createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
     }
@@ -97,6 +104,7 @@ private:
         {
             DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
         }
+        vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -286,7 +294,9 @@ private:
     {
         QueueFamilyIndices indices = findeQueueFamilies(device);
 
-        return indices.isComplete();
+        bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+        return indices.isComplete() && extensionsSupported;
     }
 
     int rateDeviceSuitablility(VkPhysicalDevice device)
@@ -320,6 +330,10 @@ private:
         {
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
+                VkBool32 presentSurpport = false;
+                vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSurpport);
+                if (presentSurpport) indices.presentFamily = i;
+                
                 indices.graphicsFamily = i;
             }
             if (indices.isComplete()) break;
@@ -335,20 +349,28 @@ private:
     {
         QueueFamilyIndices indices = findeQueueFamilies(physicalDevice);
 
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
-
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<uint32_t> uniquedQueueFamilies = {
+            indices.graphicsFamily.value(),
+            indices.presentFamily.value()
+        };
         float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        for (uint32_t queueFamily : uniquedQueueFamilies)
+        {
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pEnabledFeatures = &deviceFeatures;
         createInfo.enabledExtensionCount = 0;
         if (enableValidationLayers)
@@ -367,16 +389,51 @@ private:
         }
 
         vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
+        vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
     }
     // ======================================= Logical Device End ======================================= //
 
+    // ======================================= Window surface creation Begin ======================================= //
+    void createSurface()
+    {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create window surface!");
+        }
+    }
+    // ======================================= Window surface creation End ======================================= //
+
+    // ======================================= Swap Chain Begin ======================================= //
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device)
+    {
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+        std::set<std::string> requireExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+        for (const auto& extension : availableExtensions)
+        {
+            requireExtensions.erase(extension.extensionName);
+        }
+        return requireExtensions.empty();
+    }
+    // ======================================= Swap Chain End ======================================= //
+
 private:
+    // Setup
     GLFWwindow* window = nullptr;
     VkInstance instance = nullptr;
     VkDebugUtilsMessengerEXT debugMessenger = nullptr;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice logicalDevice = nullptr;
-    VkQueue graphicsQueue = nullptr;
+    VkDevice logicalDevice = VK_NULL_HANDLE;
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
+
+    // Presentation
+    VkSurfaceKHR surface = nullptr;
+    VkQueue presentQueue = VK_NULL_HANDLE;
 };
 
 int main(int argc, char* argv[])
