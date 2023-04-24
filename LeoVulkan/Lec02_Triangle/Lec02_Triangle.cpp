@@ -107,6 +107,7 @@ private:
         createLogicalDevice();
         createSwapChain();
         createImageViews();
+        createGraphicsPipeline();
     }
     
     void cleanup()
@@ -604,6 +605,13 @@ private:
     }
     // ======================================= Image View End ======================================= //
 
+    // ======================================= Graphics Pipeline Begin ======================================= //
+    void createGraphicsPipeline()
+    {
+        
+    }
+    // ======================================= Graphics Pipeline End ======================================= //
+
 private:
     // Setup
     GLFWwindow* window = nullptr;
@@ -620,8 +628,10 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat = VK_FORMAT_B8G8R8A8_SRGB;
     VkExtent2D swapChainExtent = {0, 0};
-
     std::vector<VkImageView> swapChainImageViews;
+
+    // Graphics Pipeline
+    
     
 };
 
