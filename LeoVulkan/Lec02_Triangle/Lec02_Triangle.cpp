@@ -14,6 +14,7 @@
 #include <set>
 #include <cstdint>
 #include <algorithm>
+#include <fstream>
 #include <glm/ext/scalar_uint_sized.hpp>
 
 const uint32_t WIDTH = 800;
@@ -62,7 +63,7 @@ struct QueueFamilyIndices
 
 struct SwapChainSupportDetails
 {
-    VkSurfaceCapabilitiesKHR capabilities;
+    VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 }; 
@@ -605,10 +606,32 @@ private:
     }
     // ======================================= Image View End ======================================= //
 
+    // ======================================= Shader Modules Begin ======================================= //
+    static std::vector<char> readFiles(const std::string& filename)
+    {
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Failed to open file!" + filename);
+        }
+
+        size_t fileSize = (size_t)file.tellg();
+        std::vector<char> buffer(fileSize);
+
+        file.seekg(0);
+        file.read(buffer.data(), fileSize);
+        file.close();
+
+        return buffer;
+    }
+    // ======================================= Shader Modules End ======================================= //
+    
     // ======================================= Graphics Pipeline Begin ======================================= //
     void createGraphicsPipeline()
     {
-        
+        auto VSCode = readFiles("../Assets/Shaders/SPIRV/Triangle.vert.spv");
+        auto PSCode = readFiles("../Assets/Shaders/SPIRV/Triangle.frag.spv");
     }
     // ======================================= Graphics Pipeline End ======================================= //
 

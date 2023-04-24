@@ -45,6 +45,10 @@
     <Import Project="..\PropertySheet.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -72,6 +76,12 @@
       </Command>
     </PreBuildEvent>
     <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>for %%f in ("$(SolutionDir)Assets\Shaders\GLSL\*.*") do (
+    %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv" 
+)
+xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -101,16 +111,12 @@
       </Command>
     </PreBuildEvent>
     <PreBuildEvent />
+    <PostBuildEvent>
+      <Command>for %%f in ("$(SolutionDir)Assets\Shaders\GLSL\*.*") do (      %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv"   )  xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lec02_Triangle.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Shaders\GLSL\Triangle.frag" />
-    <Content Include="Shaders\GLSL\Triangle.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Shaders\SPIRV\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
