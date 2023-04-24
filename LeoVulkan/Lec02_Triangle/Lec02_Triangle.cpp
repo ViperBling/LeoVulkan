@@ -79,6 +79,14 @@ public:
     }
 
 private:
+    void mainLoop()
+    {
+        while (!glfwWindowShouldClose(window))
+        {
+            glfwPollEvents();
+        }
+    }
+    
     void initWindow()
     {
         glfwInit();
@@ -98,18 +106,15 @@ private:
         pickPhysicalDevice();
         createLogicalDevice();
         createSwapChain();
-    }
-    
-    void mainLoop()
-    {
-        while (!glfwWindowShouldClose(window))
-        {
-            glfwPollEvents();
-        }
+        createImageViews();
     }
     
     void cleanup()
     {
+        for (auto imageView : swapChainImageViews)
+        {
+            vkDestroyImageView(logicalDevice, imageView, nullptr);
+        }
         vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
         vkDestroyDevice(logicalDevice, nullptr);
         if (enableValidationLayers)
@@ -570,6 +575,35 @@ private:
     }
     // ======================================= Swap Chain End ======================================= //
 
+    // ======================================= Image View Begin ======================================= //
+    void createImageViews()
+    {
+        swapChainImageViews.resize(swapChainImages.size());
+        for (size_t i = 0; i < swapChainImages.size(); i++)
+        {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = swapChainImages[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = swapChainImageFormat;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(logicalDevice, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to create image views!");
+            }
+        }
+    }
+    // ======================================= Image View End ======================================= //
+
 private:
     // Setup
     GLFWwindow* window = nullptr;
@@ -586,6 +620,9 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat = VK_FORMAT_B8G8R8A8_SRGB;
     VkExtent2D swapChainExtent = {0, 0};
+
+    std::vector<VkImageView> swapChainImageViews;
+    
 };
 
 int main(int argc, char* argv[])
