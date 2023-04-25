@@ -11,13 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{31263A90-6185-49CD-92B1-478EB7AC1113}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{f0785a06-7509-4082-a2b3-daa7114b7547}</ProjectGuid>
-    <RootNamespace>Lec02Triangle</RootNamespace>
+    <RootNamespace>Lec03_VertexBuffers</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -46,80 +49,63 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <CustomBuildBeforeTargets>
-    </CustomBuildBeforeTargets>
+    <LinkIncremental>true</LinkIncremental>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;$(SolutionDir)\External\glfw\include;$(SolutionDir)\External\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%VULKAN_SDK%\Lib;$(SolutionDir)\External\glfw\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
-    <CustomBuildStep />
-    <CustomBuildStep>
-      <Outputs>
-      </Outputs>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent />
     <PostBuildEvent>
       <Command>for %%f in ("$(SolutionDir)Assets\Shaders\GLSL\*.*") do (
     %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv" 
 )
 xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+      <Message>Compile Shader</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;$(SolutionDir)\External\glfw\include;$(SolutionDir)\External\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%VULKAN_SDK%\Lib;$(SolutionDir)\External\glfw\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-      <Outputs>
-      </Outputs>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent />
     <PostBuildEvent>
       <Command>for %%f in ("$(SolutionDir)Assets\Shaders\GLSL\*.*") do (
     %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv" 
 )
 xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+      <Message>Compile Shader</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Lec02_Triangle.cpp" />
+    <ClCompile Include="Lec03_VertexBuffers.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
