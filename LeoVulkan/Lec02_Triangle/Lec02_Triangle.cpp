@@ -607,6 +607,21 @@ private:
     // ======================================= Image View End ======================================= //
 
     // ======================================= Shader Modules Begin ======================================= //
+    VkShaderModule createShaderModule(const std::vector<char>& code)
+    {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = code.size();
+        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create shader module!");
+        }
+        return shaderModule;
+    }
+    
     static std::vector<char> readFiles(const std::string& filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -630,8 +645,28 @@ private:
     // ======================================= Graphics Pipeline Begin ======================================= //
     void createGraphicsPipeline()
     {
-        auto VSCode = readFiles("../Assets/Shaders/SPIRV/Triangle.vert.spv");
-        auto PSCode = readFiles("../Assets/Shaders/SPIRV/Triangle.frag.spv");
+        auto vsCode = readFiles("../Assets/Shaders/SPIRV/Triangle.vert.spv");
+        auto psCode = readFiles("../Assets/Shaders/SPIRV/Triangle.frag.spv");
+
+        VkShaderModule vsShaderModule = createShaderModule(vsCode);
+        VkShaderModule psShaderModule = createShaderModule(psCode);
+
+        VkPipelineShaderStageCreateInfo vsShaderStageInfo{};
+        vsShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vsShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vsShaderStageInfo.module = vsShaderModule;
+        vsShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo psShaderStageInfo{};
+        psShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        psShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        psShaderStageInfo.module = psShaderModule;
+        psShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo shaderStageInfo[] = {vsShaderStageInfo, psShaderStageInfo};
+        
+        vkDestroyShaderModule(logicalDevice, psShaderModule, nullptr);
+        vkDestroyShaderModule(logicalDevice, vsShaderModule, nullptr);
     }
     // ======================================= Graphics Pipeline End ======================================= //
 
