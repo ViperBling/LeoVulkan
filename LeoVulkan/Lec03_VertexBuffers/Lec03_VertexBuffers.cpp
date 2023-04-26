@@ -96,10 +96,9 @@ private:
     void initWindow()
     {
         glfwInit();
-
-        // ÉèÖÃ´°¿ÚÊôĞÔ
+        // è®¾ç½®çª—å£å±æ€§
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        // ´´½¨´°¿Ú
+        // åˆ›å»ºçª—å£
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, frameBufferResizeCallback);
@@ -280,10 +279,10 @@ private:
     {
         createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |      // ÈÕÖ¾µÈ¼¶
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |      // æ—¥å¿—ç­‰çº§
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |              // ÈÕÖ¾ÀàĞÍ£¬ÕâÀïÆôÓÃÈ«²¿
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |              // å¯ç”¨å…¨éƒ¨æ—¥å¿—ç±»å‹
             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
@@ -360,7 +359,7 @@ private:
         vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
         int score = 0;
-        // ÓÅÏÈÊ¹ÓÃ¶ÀÏÔ
+        // ä¼˜å…ˆä½¿ç”¨ç‹¬æ˜¾
         if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) score += 1000;
         score += (int)deviceProperties.limits.maxImageDimension2D;
 
@@ -777,6 +776,7 @@ private:
             VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachments.blendEnable = VK_FALSE;
 
+        // æ³¨é‡Šæµ‹è¯•
         VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo{};
         colorBlendingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         colorBlendingCreateInfo.logicOpEnable = VK_FALSE;
@@ -1006,7 +1006,7 @@ private:
         {
             throw std::runtime_error("Failed to acquire swap chain image!");
         }
-        // Ö»ÓĞÔÚ³É¹¦Ìá½»ÁË²ÅÖØÖÃFence
+        // åªæœ‰æˆåŠŸæäº¤äº†æ‰é‡ç½®Fence
         vkResetFences(logicalDevice, 1, &inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
