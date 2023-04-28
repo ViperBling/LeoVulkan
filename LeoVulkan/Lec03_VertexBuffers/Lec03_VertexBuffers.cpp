@@ -743,8 +743,8 @@ private:
     // ======================================= Graphics Pipeline Begin ======================================= //
     void createGraphicsPipeline()
     {
-        auto vsCode = readFiles("../Assets/Shaders/SPIRV/Triangle.vert.spv");
-        auto psCode = readFiles("../Assets/Shaders/SPIRV/Triangle.frag.spv");
+        auto vsCode = readFiles("../Assets/Shaders/SPIRV/VertexBuffer.vert.spv");
+        auto psCode = readFiles("../Assets/Shaders/SPIRV/VertexBuffer.frag.spv");
 
         VkShaderModule vsShaderModule = createShaderModule(vsCode);
         VkShaderModule psShaderModule = createShaderModule(psCode);
@@ -764,12 +764,14 @@ private:
         VkPipelineShaderStageCreateInfo shaderStageInfo[] = { vsShaderStageInfo, psShaderStageInfo };
 
         // Vertex Input
+        auto bindingDescription = Vertex::getBindingDescription();
+        auto attributeDescription = Vertex::getAttributeDescription();
         VkPipelineVertexInputStateCreateInfo vsInputInfo{};
         vsInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vsInputInfo.vertexBindingDescriptionCount = 0;
-        vsInputInfo.pVertexBindingDescriptions = nullptr;
-        vsInputInfo.vertexAttributeDescriptionCount = 0;
-        vsInputInfo.pVertexAttributeDescriptions = nullptr;
+        vsInputInfo.vertexBindingDescriptionCount = 1;
+        vsInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vsInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescription.size());
+        vsInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
 
         // Input assembly
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{};
