@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec03_VertexBuffers", "Lec0
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec04_UniformBuffers", "Lec04_UniformBuffers\Lec04_UniformBuffers.vcxproj", "{6F1A99D6-17F9-499B-B58F-10F6B6B7F1DF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec05_TextureMapping", "Lec05_TextureMapping\Lec05_TextureMapping.vcxproj", "{3669AD84-D8A6-4C4C-920B-027754EDCF43}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +35,10 @@ Global
 		{6F1A99D6-17F9-499B-B58F-10F6B6B7F1DF}.Debug|x64.Build.0 = Debug|x64
 		{6F1A99D6-17F9-499B-B58F-10F6B6B7F1DF}.Release|x64.ActiveCfg = Release|x64
 		{6F1A99D6-17F9-499B-B58F-10F6B6B7F1DF}.Release|x64.Build.0 = Release|x64
+		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Debug|x64.ActiveCfg = Debug|x64
+		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Debug|x64.Build.0 = Debug|x64
+		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Release|x64.ActiveCfg = Release|x64
+		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
