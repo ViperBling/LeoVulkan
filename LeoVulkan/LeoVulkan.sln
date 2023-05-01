@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec04_UniformBuffers", "Lec
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec05_TextureMapping", "Lec05_TextureMapping\Lec05_TextureMapping.vcxproj", "{3669AD84-D8A6-4C4C-920B-027754EDCF43}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec06_DepthBuffering", "Lec06_DepthBuffering\Lec06_DepthBuffering.vcxproj", "{D8082F86-1F66-492D-B9A3-881788305939}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -39,6 +41,10 @@ Global
 		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Debug|x64.Build.0 = Debug|x64
 		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Release|x64.ActiveCfg = Release|x64
 		{3669AD84-D8A6-4C4C-920B-027754EDCF43}.Release|x64.Build.0 = Release|x64
+		{D8082F86-1F66-492D-B9A3-881788305939}.Debug|x64.ActiveCfg = Debug|x64
+		{D8082F86-1F66-492D-B9A3-881788305939}.Debug|x64.Build.0 = Debug|x64
+		{D8082F86-1F66-492D-B9A3-881788305939}.Release|x64.ActiveCfg = Release|x64
+		{D8082F86-1F66-492D-B9A3-881788305939}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
