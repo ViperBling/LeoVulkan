@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;$(SolutionDir)\External\glfw\include;$(SolutionDir)\External\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%VULKAN_SDK%\Include;$(SolutionDir)\External\glfw\include;$(SolutionDir)\External\glm;$(SolutionDir)\External\stb;$(SolutionDir)\External\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpp17</LanguageStandard>

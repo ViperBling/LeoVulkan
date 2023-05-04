@@ -81,6 +81,7 @@
     %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv" 
 )
 xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+      <Message>Compiling Shaders!</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -116,6 +117,7 @@ xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
     %VULKAN_SDK%\Bin\glslc.exe "$(SolutionDir)Assets\Shaders\GLSL\%%~nxf" -o "$(SolutionDir)Assets\Shaders\SPIRV\%%~nxf.spv" 
 )
 xcopy "$(SolutionDir)Assets\*.*"  "$(TargetDir)\Assets" /y /i /e</Command>
+      <Message>Compiling Shaders!</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
