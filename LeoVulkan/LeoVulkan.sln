@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec07_LoadingModels", "Lec0
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec08_GeneratingMipmaps", "Lec08_GeneratingMipmaps\Lec08_GeneratingMipmaps.vcxproj", "{C2561372-0986-4ED7-9A08-C9E517815CD2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lec09_Multisampling", "Lec09_Multisampling\Lec09_Multisampling.vcxproj", "{4B04D30B-3425-40FB-8844-7CB9C37C3D7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -57,6 +59,10 @@ Global
 		{C2561372-0986-4ED7-9A08-C9E517815CD2}.Debug|x64.Build.0 = Debug|x64
 		{C2561372-0986-4ED7-9A08-C9E517815CD2}.Release|x64.ActiveCfg = Release|x64
 		{C2561372-0986-4ED7-9A08-C9E517815CD2}.Release|x64.Build.0 = Release|x64
+		{4B04D30B-3425-40FB-8844-7CB9C37C3D7B}.Debug|x64.ActiveCfg = Debug|x64
+		{4B04D30B-3425-40FB-8844-7CB9C37C3D7B}.Debug|x64.Build.0 = Debug|x64
+		{4B04D30B-3425-40FB-8844-7CB9C37C3D7B}.Release|x64.ActiveCfg = Release|x64
+		{4B04D30B-3425-40FB-8844-7CB9C37C3D7B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
