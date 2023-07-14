@@ -10,7 +10,7 @@ void LeoVKEngine::Init()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_WindowFlags wndFlags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
+    auto wndFlags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
 
     window = SDL_CreateWindow(
         "LeoVKEngine",
