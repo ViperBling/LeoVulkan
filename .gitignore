@@ -33,3 +33,5 @@
 .idea
 .vs
 x64
+Binary
+cmake-build-debug
