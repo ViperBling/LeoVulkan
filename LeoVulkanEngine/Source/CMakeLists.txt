@@ -4,6 +4,7 @@ include_directories(Engine)
 
 add_executable(LeoVKEngine
     main.cpp
+    Engine/VKPCH.h
     Engine/VKEngine.cpp
     Engine/VKEngine.h
     Engine/VKTypes.h
