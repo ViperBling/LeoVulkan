@@ -13,9 +13,26 @@ public:
 
 public:
     bool bIsInitialized {false};
-    int frameNumber {0};
+    int mFrameNumber {0};
 
-    VkExtent2D windowExtent {1280, 720};
+    VkExtent2D mWndExtent {1280, 720};
 
-    struct SDL_Window* window {nullptr};
+    struct SDL_Window* mWindow {nullptr};
+
+    VkInstance mInstance;
+    VkDebugUtilsMessengerEXT mDebugMessenger;
+    VkPhysicalDevice mPhysicalDevice;
+    VkDevice mDevice;
+    VkSurfaceKHR mSurface;
+
+    VkSwapchainKHR mSwapChain;
+    VkFormat mSwapChainImageFormat;
+    std::vector<VkImage> mSwapChainImages;
+    std::vector<VkImageView> mSwapChainImageViews;
+
+
+private:
+
+    void initVulkan();
+    void initSwapChain();
 };
