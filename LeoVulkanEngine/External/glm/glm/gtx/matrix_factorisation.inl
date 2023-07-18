@@ -1,21 +1,22 @@
 /// @ref gtx_matrix_factorisation
+/// @file glm/gtx/matrix_factorisation.inl
 
 namespace glm
 {
-	template <length_t C, length_t R, typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER mat<C, R, T, Q> flipud(mat<C, R, T, Q> const& in)
+	template <length_t C, length_t R, typename T, precision P, template<length_t, length_t, typename, precision> class matType>
+	GLM_FUNC_QUALIFIER matType<C, R, T, P> flipud(matType<C, R, T, P> const& in)
 	{
-		mat<R, C, T, Q> tin = transpose(in);
+		matType<R, C, T, P> tin = transpose(in);
 		tin = fliplr(tin);
-		mat<C, R, T, Q> out = transpose(tin);
+		matType<C, R, T, P> out = transpose(tin);
 
 		return out;
 	}
 
-	template <length_t C, length_t R, typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER mat<C, R, T, Q> fliplr(mat<C, R, T, Q> const& in)
+	template <length_t C, length_t R, typename T, precision P, template<length_t, length_t, typename, precision> class matType>
+	GLM_FUNC_QUALIFIER matType<C, R, T, P> fliplr(matType<C, R, T, P> const& in)
 	{
-		mat<C, R, T, Q> out;
+		matType<C, R, T, P> out(uninitialize);
 		for (length_t i = 0; i < C; i++)
 		{
 			out[i] = in[(C - i) - 1];
@@ -24,8 +25,8 @@ namespace glm
 		return out;
 	}
 
-	template <length_t C, length_t R, typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER void qr_decompose(mat<C, R, T, Q> const& in, mat<(C < R ? C : R), R, T, Q>& q, mat<C, (C < R ? C : R), T, Q>& r)
+	template <length_t C, length_t R, typename T, precision P, template<length_t, length_t, typename, precision> class matType>
+	GLM_FUNC_QUALIFIER void qr_decompose(matType<C, R, T, P> const& in, matType<(C < R ? C : R), R, T, P>& q, matType<C, (C < R ? C : R), T, P>& r)
 	{
 		// Uses modified Gram-Schmidt method
 		// Source: https://en.wikipedia.org/wiki/Gram–Schmidt_process
@@ -59,19 +60,19 @@ namespace glm
 		}
 	}
 
-	template <length_t C, length_t R, typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER void rq_decompose(mat<C, R, T, Q> const& in, mat<(C < R ? C : R), R, T, Q>& r, mat<C, (C < R ? C : R), T, Q>& q)
+	template <length_t C, length_t R, typename T, precision P, template<length_t, length_t, typename, precision> class matType>
+	GLM_FUNC_QUALIFIER void rq_decompose(matType<C, R, T, P> const& in, matType<(C < R ? C : R), R, T, P>& r, matType<C, (C < R ? C : R), T, P>& q)
 	{
 		// From https://en.wikipedia.org/wiki/QR_decomposition:
 		// The RQ decomposition transforms a matrix A into the product of an upper triangular matrix R (also known as right-triangular) and an orthogonal matrix Q. The only difference from QR decomposition is the order of these matrices.
 		// QR decomposition is Gram–Schmidt orthogonalization of columns of A, started from the first column.
 		// RQ decomposition is Gram–Schmidt orthogonalization of rows of A, started from the last row.
 
-		mat<R, C, T, Q> tin = transpose(in);
+		matType<R, C, T, P> tin = transpose(in);
 		tin = fliplr(tin);
 
-		mat<R, (C < R ? C : R), T, Q> tr;
-		mat<(C < R ? C : R), C, T, Q> tq;
+		matType<R, (C < R ? C : R), T, P> tr;
+		matType<(C < R ? C : R), C, T, P> tq;
 		qr_decompose(tin, tq, tr);
 
 		tr = fliplr(tr);

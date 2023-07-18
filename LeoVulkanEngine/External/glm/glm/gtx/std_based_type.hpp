@@ -7,9 +7,8 @@
 /// @defgroup gtx_std_based_type GLM_GTX_std_based_type
 /// @ingroup gtx
 ///
-/// Include <glm/gtx/std_based_type.hpp> to use the features of this extension.
-///
-/// Adds vector types based on STL value types.
+/// @brief Adds vector types based on STL value types.
+/// <glm/gtx/std_based_type.hpp> need to be included to use these functionalities.
 
 #pragma once
 
@@ -17,12 +16,12 @@
 #include "../glm.hpp"
 #include <cstdlib>
 
-#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
-#	ifndef GLM_ENABLE_EXPERIMENTAL
-#		pragma message("GLM: GLM_GTX_std_based_type is an experimental extension and may change in the future. Use #define GLM_ENABLE_EXPERIMENTAL before including it, if you really want to use it.")
-#	else
-#		pragma message("GLM: GLM_GTX_std_based_type extension included")
-#	endif
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#	error "GLM: GLM_GTX_std_based_type is an experimental extension and may change in the future. Use #define GLM_ENABLE_EXPERIMENTAL before including it, if you really want to use it."
+#endif
+
+#if GLM_MESSAGES == GLM_MESSAGES_ENABLED && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_GTX_std_based_type extension included")
 #endif
 
 namespace glm

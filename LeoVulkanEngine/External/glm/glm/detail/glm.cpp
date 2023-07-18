@@ -1,15 +1,10 @@
 /// @ref core
 /// @file glm/glm.cpp
 
-#ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
-#endif
-#include <glm/gtx/dual_quaternion.hpp>
-#include <glm/gtc/vec1.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/ext/scalar_int_sized.hpp>
-#include <glm/ext/scalar_uint_sized.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/dual_quaternion.hpp>
 
 namespace glm
 {
@@ -240,14 +235,14 @@ template struct mat<4, 4, float32, highp>;
 template struct mat<4, 4, float64, highp>;
 
 // tquat type explicit instantiation
-template struct qua<float32, lowp>;
-template struct qua<float64, lowp>;
+template struct tquat<float32, lowp>;
+template struct tquat<float64, lowp>;
 
-template struct qua<float32, mediump>;
-template struct qua<float64, mediump>;
+template struct tquat<float32, mediump>;
+template struct tquat<float64, mediump>;
 
-template struct qua<float32, highp>;
-template struct qua<float64, highp>;
+template struct tquat<float32, highp>;
+template struct tquat<float64, highp>;
 
 //tdualquat type explicit instantiation
 template struct tdualquat<float32, lowp>;

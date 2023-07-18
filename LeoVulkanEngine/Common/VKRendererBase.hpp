@@ -1,0 +1,14 @@
+//
+// Created by qiuso on 2023/7/19.
+//
+
+#ifndef LEORENDERER_VKRENDERERBASE_HPP
+#define LEORENDERER_VKRENDERERBASE_HPP
+
+
+class VKRendererBase {
+
+};
+
+
+#endif //LEORENDERER_VKRENDERERBASE_HPP

@@ -1,16 +1,17 @@
 /// @ref gtx_color_space
+/// @file glm/gtx/color_space.inl
 
 namespace glm
 {
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER vec<3, T, Q> rgbColor(const vec<3, T, Q>& hsvColor)
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER vec<3, T, P> rgbColor(const vec<3, T, P>& hsvColor)
 	{
-		vec<3, T, Q> hsv = hsvColor;
-		vec<3, T, Q> rgbColor;
+		vec<3, T, P> hsv = hsvColor;
+		vec<3, T, P> rgbColor;
 
 		if(hsv.y == static_cast<T>(0))
 			// achromatic (grey)
-			rgbColor = vec<3, T, Q>(hsv.z);
+			rgbColor = vec<3, T, P>(hsv.z);
 		else
 		{
 			T sector = floor(hsv.x * (T(1) / T(60)));
@@ -44,13 +45,13 @@ namespace glm
 				rgbColor.b = hsv.z;
 				break;
 			case 4:
-				rgbColor.r = q;
-				rgbColor.g = o;
+				rgbColor.r = q; 
+				rgbColor.g = o; 
 				rgbColor.b = hsv.z;
 				break;
 			case 5:
-				rgbColor.r = hsv.z;
-				rgbColor.g = o;
+				rgbColor.r = hsv.z; 
+				rgbColor.g = o; 
 				rgbColor.b = p;
 				break;
 			}
@@ -59,19 +60,19 @@ namespace glm
 		return rgbColor;
 	}
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER vec<3, T, Q> hsvColor(const vec<3, T, Q>& rgbColor)
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER vec<3, T, P> hsvColor(const vec<3, T, P>& rgbColor)
 	{
-		vec<3, T, Q> hsv = rgbColor;
+		vec<3, T, P> hsv = rgbColor;
 		float Min   = min(min(rgbColor.r, rgbColor.g), rgbColor.b);
 		float Max   = max(max(rgbColor.r, rgbColor.g), rgbColor.b);
 		float Delta = Max - Min;
 
-		hsv.z = Max;
+		hsv.z = Max;                               
 
 		if(Max != static_cast<T>(0))
 		{
-			hsv.y = Delta / hsv.z;
+			hsv.y = Delta / hsv.z;    
 			T h = static_cast<T>(0);
 
 			if(rgbColor.r == Max)
@@ -84,7 +85,7 @@ namespace glm
 				// between magenta & cyan
 				h = static_cast<T>(240) + T(60) * (rgbColor.r - rgbColor.g) / Delta;
 
-			if(h < T(0))
+			if(h < T(0)) 
 				hsv.x = h + T(360);
 			else
 				hsv.x = h;
@@ -120,22 +121,22 @@ namespace glm
 		return result;
 	}
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER vec<3, T, Q> saturation(const T s, const vec<3, T, Q>& color)
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER vec<3, T, P> saturation(const T s, const vec<3, T, P>& color)
 	{
-		return vec<3, T, Q>(saturation(s) * vec<4, T, Q>(color, T(0)));
+		return vec<3, T, P>(saturation(s) * vec<4, T, P>(color, T(0)));
 	}
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER vec<4, T, Q> saturation(const T s, const vec<4, T, Q>& color)
+	template<typename T, precision P>
+	GLM_FUNC_QUALIFIER vec<4, T, P> saturation(const T s, const vec<4, T, P>& color)
 	{
 		return saturation(s) * color;
 	}
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER T luminosity(const vec<3, T, Q>& color)
+	template<typename T, precision P> 
+	GLM_FUNC_QUALIFIER T luminosity(const vec<3, T, P>& color)
 	{
-		const vec<3, T, Q> tmp = vec<3, T, Q>(0.33, 0.59, 0.11);
+		const vec<3, T, P> tmp = vec<3, T, P>(0.33, 0.59, 0.11);
 		return dot(color, tmp);
 	}
 }//namespace glm
