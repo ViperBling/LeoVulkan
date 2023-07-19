@@ -1,8 +1,0 @@
-//
-// Created by qiuso on 2023/7/19.
-//
-
-#ifndef LEORENDERER_CMDPARSER_HPP
-#define LEORENDERER_CMDPARSER_HPP
-
-#endif //LEORENDERER_CMDPARSER_HPP

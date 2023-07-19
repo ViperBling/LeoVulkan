@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProjectPCH.h"
+#include "ProjectPCH.hpp"
 #include "tiny_gltf.h"
 #include "VulkanFramework.h"
 #include "GLTFLoader.h"
