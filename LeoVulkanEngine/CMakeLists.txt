@@ -71,10 +71,10 @@ function(buildProjects)
 endfunction(buildProjects)
 
 if(RESOURCE_INSTALL_DIR)
-    add_definitions(-DVK_PROJECT_ASSETS_DIR=\"${RESOURCE_INSTALL_DIR}/\")
+    add_definitions(-DVK_ASSETS_DIR=\"${RESOURCE_INSTALL_DIR}/\")
     install(DIRECTORY Assets/ DESTINATION ${RESOURCE_INSTALL_DIR}/)
 else()
-    add_definitions(-DVK_PROJECT_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/Assets/\")
+    add_definitions(-DVK_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/Assets/\")
 endif()
 
 # Compiler specific stuff

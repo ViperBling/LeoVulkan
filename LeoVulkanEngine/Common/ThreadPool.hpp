@@ -22,10 +22,10 @@ namespace LeoVK
 
     private:
 
-        bool mbDestroying = false;
-        std::thread mWorker;
+        bool                    mbDestroying = false;
+        std::thread             mWorker;
         std::queue<std::function<void()>> mJobQueue;
-        std::mutex mQueueMutex;
+        std::mutex              mQueueMutex;
         std::condition_variable mCondition;
     };
 
