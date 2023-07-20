@@ -16,6 +16,7 @@
 #include <iomanip>
 #include <chrono>
 #include <numeric>
+#include <exception>
 
 #include <windows.h>
 #include <fcntl.h>

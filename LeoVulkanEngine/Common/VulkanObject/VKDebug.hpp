@@ -37,10 +37,10 @@ namespace LeoVK::DebugMarker
     void SetObjectTag(VkDevice device, uint64_t object, VkDebugReportObjectTypeEXT objectType, uint64_t name, size_t tagSize, const void* tag);
 
     // Start a new debug marker region
-    void BeginRegion(VkCommandBuffer cmdbuffer, const char* pMarkerName, glm::vec4 color);
+    void BeginRegion(VkCommandBuffer cmdBuffer, const char* pMarkerName, glm::vec4 color);
 
     // 在Command Buffer中插入一个新的DebugMarker
-    void Insert(VkCommandBuffer cmdbuffer, std::string markerName, glm::vec4 color);
+    void Insert(VkCommandBuffer cmdBuffer, std::string markerName, glm::vec4 color);
 
     // End the current debug marker region
     void EndRegion(VkCommandBuffer cmdBuffer);
