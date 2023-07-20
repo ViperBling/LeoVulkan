@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <array>
 #include "Vulkan/vulkan.h"
 
 #include "VKDevice.hpp"
@@ -42,7 +43,7 @@ namespace LeoVK
         virtual ~FrameBuffer();
 
         uint32_t AddAttachment(AttachmentCreateInfo createInfo);
-        VkResult CreateSampler(VkFilter magFilter, VkFilter minFilter, VkSamplerAddressMode addresMode);
+        VkResult CreateSampler(VkFilter magFilter, VkFilter minFilter, VkSamplerAddressMode addressMode);
         VkResult CreateRenderPass();
 
     public:

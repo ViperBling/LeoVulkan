@@ -7,6 +7,7 @@ project(${NAME})
 
 include_directories(External)
 include_directories(External/GLM)
+include_directories(External/GLI)
 include_directories(External/VMA)
 include_directories(External/ImGui)
 include_directories(External/TinyGLTF)
