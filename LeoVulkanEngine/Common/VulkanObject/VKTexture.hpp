@@ -25,12 +25,19 @@ namespace LeoVK
         void Destroy();
         void UpdateDescriptor();
         ktxResult LoadKTXFile(std::string filename, ktxTexture** target);
-        void LoadFromImage(
-            tinygltf::Image& gltfImage,
-            TextureSampler textureSampler,
-            LeoVK::VulkanDevice* device,
-            VkQueue copyQueue);
-
+        virtual void loadFromBuffer(
+            void* buffer,
+            VkDeviceSize bufferSize,
+            VkFormat format,
+            uint32_t width,
+            uint32_t height,
+            LeoVK::VulkanDevice *device,
+            VkQueue copyQueue,
+            TextureSampler texSampler,
+            VkFilter filter = VK_FILTER_LINEAR,
+            VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
+            VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        );
 
     public:
         LeoVK::VulkanDevice*  mpDevice;
@@ -48,6 +55,13 @@ namespace LeoVK
     class Texture2D : public Texture
     {
     public:
+        void LoadFromImage(
+            tinygltf::Image& gltfImage,
+            TextureSampler textureSampler,
+            LeoVK::VulkanDevice* device,
+            VkQueue copyQueue
+        );
+
         void LoadFromFile(
             std::string filename,
             VkFormat format,
@@ -56,18 +70,7 @@ namespace LeoVK
             VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
             VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         );
-        void LoadFromBuffer(
-            void* buffer,
-            VkDeviceSize bufferSize,
-            VkFormat format,
-            uint32_t width,
-            uint32_t height,
-            LeoVK::VulkanDevice *device,
-            VkQueue copyQueue,
-            VkFilter filter = VK_FILTER_LINEAR,
-            VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
-            VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        );
+
     };
 
     class Texture2DArray : public Texture
