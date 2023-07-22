@@ -522,7 +522,7 @@ namespace LeoVK
                 texSampler = mTexSamplers[tex.sampler];
             }
 
-            LeoVK::Texture texture;
+            LeoVK::Texture2D texture;
             texture.LoadFromImage(image, texSampler, device, transferQueue);
             mTextures.push_back(texture);
         }

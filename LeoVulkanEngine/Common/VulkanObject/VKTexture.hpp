@@ -25,19 +25,14 @@ namespace LeoVK
         void Destroy();
         void UpdateDescriptor();
         ktxResult LoadKTXFile(std::string filename, ktxTexture** target);
-        virtual void loadFromBuffer(
-            void* buffer,
-            VkDeviceSize bufferSize,
+        void LoadTextureFromFile(
+            ktxTexture* ktxTex,
             VkFormat format,
-            uint32_t width,
-            uint32_t height,
             LeoVK::VulkanDevice *device,
             VkQueue copyQueue,
-            TextureSampler texSampler,
-            VkFilter filter = VK_FILTER_LINEAR,
-            VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
-            VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        );
+            VkImageUsageFlags imageUsageFlags,
+            VkImageLayout imageLayout,
+            uint32_t layerCount);
 
     public:
         LeoVK::VulkanDevice*  mpDevice;
@@ -55,6 +50,18 @@ namespace LeoVK
     class Texture2D : public Texture
     {
     public:
+        void LoadFromBuffer(
+            void*                   buffer,
+            VkDeviceSize            bufferSize,
+            VkFormat                format,
+            uint32_t                texWidth,
+            uint32_t                texHeight,
+            LeoVK::VulkanDevice*    device,
+            VkQueue                 copyQueue,
+            VkFilter                filter          = VK_FILTER_LINEAR,
+            VkImageUsageFlags       imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
+            VkImageLayout           imageLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
         void LoadFromImage(
             tinygltf::Image& gltfImage,
             TextureSampler textureSampler,
