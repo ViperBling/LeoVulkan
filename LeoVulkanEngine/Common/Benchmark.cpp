@@ -53,7 +53,7 @@ void Benchmark::SaveResults() {
         result << "Device, DriverVersion, Duration (ms), Frames, FPS" << "\n";
         result << mDeviceProps.deviceName << "," << mDeviceProps.driverVersion << "," << mRuntime << "," << mFrameCount << "," << mFrameCount / (mRuntime / 1000.0) << "\n";
 
-        if (mOutputFrameTime)
+        if (mbOutputFrameTime)
         {
             result << "\n" << "Frame, ms" << "\n";
             for (size_t i = 0; i < mFrameTimes.size(); i++)

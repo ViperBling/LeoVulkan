@@ -17,10 +17,13 @@
 #include <chrono>
 #include <numeric>
 #include <exception>
+#include <array>
 
 #include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+#include <sys/stat.h>
+#include <ShellScalingApi.h>
 
 #include "vulkan/vulkan.h"
 

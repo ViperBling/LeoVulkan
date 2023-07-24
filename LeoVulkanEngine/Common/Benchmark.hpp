@@ -13,7 +13,7 @@ namespace LeoVK
 
     public:
         bool mbActive = false;
-        bool mOutputFrameTime = false;
+        bool mbOutputFrameTime = false;
         int mOutputFrames = -1;
         uint32_t mWarmup = 1;
         uint32_t mDuration = 10;
