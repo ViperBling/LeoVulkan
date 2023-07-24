@@ -95,7 +95,7 @@ namespace LeoVK
                 bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
                 bufferCopyRegion.imageSubresource.mipLevel = level;
                 bufferCopyRegion.imageSubresource.baseArrayLayer = layer;
-                bufferCopyRegion.imageSubresource.layerCount = 1;
+                bufferCopyRegion.imageSubresource.layerCount = layerCount;
                 bufferCopyRegion.imageExtent.width = ktxTex->baseWidth >> level;
                 bufferCopyRegion.imageExtent.height = ktxTex->baseHeight >> level;
                 bufferCopyRegion.imageExtent.depth = 1;
@@ -159,7 +159,7 @@ namespace LeoVK
             bufferCopyRegions.data());
 
         // Change texture image layout to shader read after all faces have been copied
-        this->mImageLayout = imageLayout;
+        mImageLayout = imageLayout;
         LeoVK::VKTools::SetImageLayout(
             copyCmd,
             mImage,
@@ -170,31 +170,31 @@ namespace LeoVK
         mpDevice->FlushCommandBuffer(copyCmd, copyQueue);
 
         // Create sampler
-        VkSamplerCreateInfo samplerCreateInfo = LeoVK::Init::SamplerCreateInfo();
-        samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-        samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-        samplerCreateInfo.addressModeV = samplerCreateInfo.addressModeU;
-        samplerCreateInfo.addressModeW = samplerCreateInfo.addressModeU;
-        samplerCreateInfo.mipLodBias = 0.0f;
-        samplerCreateInfo.maxAnisotropy = mpDevice->mEnabledFeatures.samplerAnisotropy ? mpDevice->mProperties.limits.maxSamplerAnisotropy : 1.0f;
-        samplerCreateInfo.anisotropyEnable = mpDevice->mEnabledFeatures.samplerAnisotropy;
-        samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
-        samplerCreateInfo.minLod = 0.0f;
-        samplerCreateInfo.maxLod = (float)mMipLevels;
-        samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        VK_CHECK(vkCreateSampler(mpDevice->mLogicalDevice, &samplerCreateInfo, nullptr, &mSampler));
+        VkSamplerCreateInfo samplerCI = LeoVK::Init::SamplerCreateInfo();
+        samplerCI.magFilter = VK_FILTER_LINEAR;
+        samplerCI.minFilter = VK_FILTER_LINEAR;
+        samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCI.addressModeV = samplerCI.addressModeU;
+        samplerCI.addressModeW = samplerCI.addressModeU;
+        samplerCI.mipLodBias = 0.0f;
+        samplerCI.maxAnisotropy = mpDevice->mEnabledFeatures.samplerAnisotropy ? mpDevice->mProperties.limits.maxSamplerAnisotropy : 1.0f;
+        samplerCI.anisotropyEnable = mpDevice->mEnabledFeatures.samplerAnisotropy;
+        samplerCI.compareOp = VK_COMPARE_OP_NEVER;
+        samplerCI.minLod = 0.0f;
+        samplerCI.maxLod = (float)mMipLevels;
+        samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+        VK_CHECK(vkCreateSampler(mpDevice->mLogicalDevice, &samplerCI, nullptr, &mSampler));
 
         // Create image view
-        VkImageViewCreateInfo viewCreateInfo = LeoVK::Init::ImageViewCreateInfo();
-        viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-        viewCreateInfo.format = format;
-        viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        viewCreateInfo.subresourceRange.layerCount = layerCount;
-        viewCreateInfo.subresourceRange.levelCount = mMipLevels;
-        viewCreateInfo.image = mImage;
-        VK_CHECK(vkCreateImageView(mpDevice->mLogicalDevice, &viewCreateInfo, nullptr, &mView));
+        VkImageViewCreateInfo viewCI = LeoVK::Init::ImageViewCreateInfo();
+        viewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+        viewCI.format = format;
+        viewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        viewCI.subresourceRange.layerCount = layerCount;
+        viewCI.subresourceRange.levelCount = mMipLevels;
+        viewCI.image = mImage;
+        VK_CHECK(vkCreateImageView(mpDevice->mLogicalDevice, &viewCI, nullptr, &mView));
 
         // Clean up staging resources
         ktxTexture_Destroy(ktxTex);
@@ -219,9 +219,139 @@ namespace LeoVK
         VkImageUsageFlags imageUsageFlags,
         VkImageLayout imageLayout)
     {
+        assert(buffer);
+        mpDevice = device;
+        mWidth = texWidth;
+        mHeight = texHeight;
+        mMipLevels = 1;
 
+        VkMemoryAllocateInfo memAI = LeoVK::Init::MemoryAllocateInfo();
+        VkMemoryRequirements memReqs;
+        VkCommandBuffer copyCmd = mpDevice->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+        VkBuffer stageBuffer;
+        VkDeviceMemory stageMemory;
+
+        VkBufferCreateInfo bufferCI = LeoVK::Init::BufferCreateInfo();
+        bufferCI.size = bufferSize;
+        bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        VK_CHECK(vkCreateBuffer(mpDevice->mLogicalDevice, &bufferCI, nullptr, &stageBuffer))
+
+        vkGetBufferMemoryRequirements(mpDevice->mLogicalDevice, stageBuffer, &memReqs);
+        memAI.allocationSize = memReqs.size;
+        memAI.memoryTypeIndex = mpDevice->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        VK_CHECK(vkAllocateMemory(mpDevice->mLogicalDevice, &memAI, nullptr, &mDeviceMemory));
+        VK_CHECK(vkBindImageMemory(mpDevice->mLogicalDevice, mImage, mDeviceMemory, 0));
+
+        // Copy texture data into staging buffer
+        uint8_t *data;
+        VK_CHECK(vkMapMemory(mpDevice->mLogicalDevice, stageMemory, 0, memReqs.size, 0, (void **)&data));
+        memcpy(data, buffer, bufferSize);
+        vkUnmapMemory(mpDevice->mLogicalDevice, stageMemory);
+
+        VkBufferImageCopy bufferCopyRegion{};
+        bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        bufferCopyRegion.imageSubresource.mipLevel = 0;
+        bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+        bufferCopyRegion.imageSubresource.layerCount = 1;
+        bufferCopyRegion.imageExtent = { texWidth, texHeight, 1 };
+        bufferCopyRegion.bufferOffset = 0;
+
+        // Create optimal tiled target image
+        VkImageCreateInfo imageCI = LeoVK::Init::ImageCreateInfo();
+        imageCI.imageType = VK_IMAGE_TYPE_2D;
+        imageCI.format = format;
+        imageCI.mipLevels = mMipLevels;
+        imageCI.arrayLayers = 1;
+        imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCI.extent = { texWidth, texHeight, 1 };
+        imageCI.usage = imageUsageFlags;
+        // Ensure that the TRANSFER_DST bit is set for staging
+        if (!(imageCI.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+        {
+            imageCI.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
+        VK_CHECK(vkCreateImage(mpDevice->mLogicalDevice, &imageCI, nullptr, &mImage));
+
+        vkGetImageMemoryRequirements(mpDevice->mLogicalDevice, mImage, &memReqs);
+
+        memAI.allocationSize = memReqs.size;
+
+        memAI.memoryTypeIndex = mpDevice->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        VK_CHECK(vkAllocateMemory(mpDevice->mLogicalDevice, &memAI, nullptr, &mDeviceMemory));
+        VK_CHECK(vkBindImageMemory(mpDevice->mLogicalDevice, mImage, mDeviceMemory, 0));
+
+        VkImageSubresourceRange subresourceRange = {};
+        subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        subresourceRange.baseMipLevel = 0;
+        subresourceRange.levelCount = mMipLevels;
+        subresourceRange.layerCount = 1;
+
+        LeoVK::VKTools::SetImageLayout(
+            copyCmd,
+            mImage,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            subresourceRange);
+
+        // Copy the layers and mip levels from the staging buffer to the optimal tiled image
+        vkCmdCopyBufferToImage(
+            copyCmd,
+            stageBuffer,
+            mImage,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &bufferCopyRegion);
+
+        // Change texture image layout to shader read after all faces have been copied
+        mImageLayout = imageLayout;
+        LeoVK::VKTools::SetImageLayout(
+            copyCmd,
+            mImage,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            imageLayout,
+            subresourceRange);
+
+        mpDevice->FlushCommandBuffer(copyCmd, copyQueue);
+
+        // Clean up staging resources
+        vkFreeMemory(mpDevice->mLogicalDevice, stageMemory, nullptr);
+        vkDestroyBuffer(mpDevice->mLogicalDevice, stageBuffer, nullptr);
+
+        // Create sampler
+        VkSamplerCreateInfo samplerCI = {};
+        samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCI.magFilter = filter;
+        samplerCI.minFilter = filter;
+        samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCI.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCI.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCI.mipLodBias = 0.0f;
+        samplerCI.compareOp = VK_COMPARE_OP_NEVER;
+        samplerCI.minLod = 0.0f;
+        samplerCI.maxLod = 0.0f;
+        samplerCI.maxAnisotropy = 1.0f;
+        VK_CHECK(vkCreateSampler(mpDevice->mLogicalDevice, &samplerCI, nullptr, &mSampler));
+
+        // Create image view
+        VkImageViewCreateInfo viewCreateInfo = {};
+        viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewCreateInfo.pNext = nullptr;
+        viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewCreateInfo.format = format;
+        viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        viewCreateInfo.subresourceRange.levelCount = 1;
+        viewCreateInfo.image = mImage;
+        VK_CHECK(vkCreateImageView(mpDevice->mLogicalDevice, &viewCreateInfo, nullptr, &mView));
+
+        // Update descriptor image info member that can be used for setting up descriptor sets
+        UpdateDescriptor();
     }
-
 
     void Texture2D::LoadFromImage(
         tinygltf::Image& gltfImage,
