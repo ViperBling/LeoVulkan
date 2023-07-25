@@ -1,4 +1,4 @@
-#include "VKTools.hpp"
+﻿#include "VKTools.hpp"
 
 std::string GetAssetsPath()
 {

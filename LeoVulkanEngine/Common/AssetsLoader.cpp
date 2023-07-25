@@ -1,4 +1,4 @@
-#include "AssetsLoader.hpp"
+﻿#include "AssetsLoader.hpp"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION

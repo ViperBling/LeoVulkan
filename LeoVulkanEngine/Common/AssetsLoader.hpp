@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ProjectPCH.hpp"
 #include "tiny_gltf.h"

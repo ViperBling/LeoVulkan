@@ -230,7 +230,7 @@ namespace LeoVK
         VkCommandBuffer copyCmd = mpDevice->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 
         VkBuffer stageBuffer;
-        VkDeviceMemory stageMemory;
+        VkDeviceMemory stageMemory{};
 
         VkBufferCreateInfo bufferCI = LeoVK::Init::BufferCreateInfo();
         bufferCI.size = bufferSize;
