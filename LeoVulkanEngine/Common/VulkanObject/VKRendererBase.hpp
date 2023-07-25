@@ -47,26 +47,37 @@ public:
 
     /** @brief (Virtual) Creates the application wide Vulkan instance */
     virtual VkResult CreateInstance(bool enableValidation);
+
     /** @brief (Pure virtual) Render function to be implemented by the sample application */
     virtual void Render() = 0;
+
     /** @brief (Virtual) Called when the camera view has changed */
     virtual void ViewChanged();
+
     /** @brief (Virtual) Called after a key was pressed, can be used to do custom key handling */
     virtual void KeyPressed(uint32_t);
+
     /** @brief (Virtual) Called after the mouse cursor moved and before internal events (like camera rotation) is handled */
     virtual void MouseMoved(double x, double y, bool &handled);
+
     /** @brief (Virtual) Called when the window has been resized, can be used by the sample application to recreate resources */
     virtual void WindowResized();
+
     /** @brief (Virtual) Called when resources have been recreated that require a rebuild of the command buffers (e.g. frame buffer), to be implemented by the sample application */
     virtual void BuildCommandBuffers();
+
     /** @brief (Virtual) Setup default depth and stencil views */
     virtual void SetupDepthStencil();
+
     /** @brief (Virtual) Setup default framebuffers for all requested swapchain images */
     virtual void SetupFrameBuffer();
+
     /** @brief (Virtual) Setup a default renderpass */
     virtual void SetupRenderPass();
+
     /** @brief (Virtual) Called after the physical device features have been read, can be used to set features to enable on the device */
     virtual void GetEnabledFeatures();
+
     /** @brief (Virtual) Called after the physical device extensions have been read, can be used to enable extensions based on the supported extension listing*/
     virtual void GetEnabledExtensions();
 
@@ -74,7 +85,7 @@ public:
     virtual void Prepare();
 
     /** @brief Loads a SPIR-V shader file for the given shader stage */
-    VkPipelineShaderStageCreateInfo LoadShader(std::string fileName, VkShaderStageFlagBits stage);
+    VkPipelineShaderStageCreateInfo LoadShader(std::string filename, VkShaderStageFlagBits stage);
 
     /** @brief Entry point for the main render loop */
     void RenderLoop();
@@ -84,8 +95,10 @@ public:
 
     /** Prepare the next frame for workload submission by acquiring the next swap chain image */
     void PrepareFrame();
+
     /** @brief Presents the current image to the swap chain */
     void SubmitFrame();
+
     /** @brief (Virtual) Default image acquire + submission and command buffer submission function */
     virtual void RenderFrame();
 
@@ -224,7 +237,7 @@ protected:
 
 private:
     std::string getWindowTitle();
-    void windowResize();
+    void windowResizing();
     void handleMouseMove(int32_t x, int32_t y);
     void nextFrame();
     void updateOverlay();

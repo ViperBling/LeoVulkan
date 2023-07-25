@@ -519,7 +519,7 @@ void VKRendererBase::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 {
                     mDstWidth = LOWORD(lParam);
                     mDstHeight = HIWORD(lParam);
-                    windowResize();
+                    windowResizing();
                 }
             }
             break;
@@ -671,17 +671,248 @@ void VKRendererBase::BuildCommandBuffers()
 
 void VKRendererBase::SetupDepthStencil()
 {
+    VkImageCreateInfo imageCI = LeoVK::Init::ImageCreateInfo();
+    imageCI.imageType = VK_IMAGE_TYPE_2D;
+    imageCI.format = mDepthFormat;
+    imageCI.extent = { mWidth, mHeight, 1 };
+    imageCI.mipLevels = 1;
+    imageCI.arrayLayers = 1;
+    imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
+    VK_CHECK(vkCreateImage(mDevice, &imageCI, nullptr, &mDepthStencil.image))
+    VkMemoryRequirements memReqs{};
+    vkGetImageMemoryRequirements(mDevice, mDepthStencil.image, &memReqs);
+
+    VkMemoryAllocateInfo memAI = LeoVK::Init::MemoryAllocateInfo();
+    memAI.allocationSize = memReqs.size;
+    memAI.memoryTypeIndex = mpVulkanDevice->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    VK_CHECK(vkAllocateMemory(mDevice, &memAI, nullptr, &mDepthStencil.memory))
+    VK_CHECK(vkBindImageMemory(mDevice, mDepthStencil.image, mDepthStencil.memory, 0))
+
+    VkImageViewCreateInfo depthViewCI = LeoVK::Init::ImageViewCreateInfo();
+    depthViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    depthViewCI.image = mDepthStencil.image;
+    depthViewCI.format = mDepthFormat;
+    depthViewCI.subresourceRange.baseMipLevel = 0;
+    depthViewCI.subresourceRange.levelCount = 1;
+    depthViewCI.subresourceRange.baseArrayLayer = 0;
+    depthViewCI.subresourceRange.layerCount = 1;
+    depthViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    if (mDepthFormat >= VK_FORMAT_D16_UNORM_S8_UINT)
+    {
+        depthViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+    VK_CHECK(vkCreateImageView(mDevice, &depthViewCI, nullptr, &mDepthStencil.imageView))
 }
 
 void VKRendererBase::SetupFrameBuffer()
 {
+    if (mSettings.multiSampling)
+    {
+        setupRenderTarget(&mMSTarget.color.image, &mMSTarget.color.imageView, &mMSTarget.color.memory, false);
+        setupRenderTarget(&mMSTarget.depth.image, &mMSTarget.depth.imageView, &mMSTarget.depth.memory, true);
+    }
+    VkImageView attachments[4];
+    if (mSettings.multiSampling)
+    {
+        attachments[0] = mMSTarget.color.imageView;
+        attachments[2] = mMSTarget.depth.imageView;
+        attachments[3] = mDepthStencil.imageView;
+    }
+    else
+    {
+        attachments[1] = mDepthStencil.imageView;
+    }
 
+    VkFramebufferCreateInfo frameBufferCI{};
+    frameBufferCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    frameBufferCI.pNext = nullptr;
+    frameBufferCI.renderPass = mRenderPass;
+    frameBufferCI.attachmentCount = mSettings.multiSampling ? 4 : 2;
+    frameBufferCI.pAttachments = attachments;
+    frameBufferCI.width = mWidth;
+    frameBufferCI.height = mHeight;
+    frameBufferCI.layers = 1;
+
+    // Create frame buffers for every swap chain image
+    mFrameBuffers.resize(mSwapChain.mImageCount);
+    for (uint32_t i = 0; i < mFrameBuffers.size(); i++)
+    {
+        if (mSettings.multiSampling)
+        {
+            attachments[1] = mSwapChain.mBuffers[i].mView;
+        }
+        else
+        {
+            attachments[0] = mSwapChain.mBuffers[i].mView;
+        }
+        VK_CHECK(vkCreateFramebuffer(mDevice, &frameBufferCI, nullptr, &mFrameBuffers[i]));
+    }
 }
 
 void VKRendererBase::SetupRenderPass()
 {
+    if (mSettings.multiSampling)
+    {
+        std::array<VkAttachmentDescription, 4> attachments{};
 
+        // MSAA Attachment render to
+        attachments[0].format = mSwapChain.mFormat;
+        attachments[0].samples = mSettings.sampleCount;
+        attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        // 用于显示的Attachment，同时也是MSAA的Resolve结果
+        attachments[1].format = mSwapChain.mFormat;
+        attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[1].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        // MSAA的Depth Stencil，用于Resolve
+        attachments[2].format = mDepthFormat;
+        attachments[2].samples = mSettings.sampleCount;
+        attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[2].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[2].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        // Depth resolve attachment
+        attachments[3].format = mDepthFormat;
+        attachments[3].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachments[3].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[3].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[3].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[3].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[3].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[3].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorRef{};
+        colorRef.attachment = 0;
+        colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthRef{};
+        depthRef.attachment = 2;
+        depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference resolveRef{};
+        resolveRef.attachment = 1;
+        resolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpassDesc{};
+        subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDesc.colorAttachmentCount = 1;
+        subpassDesc.pColorAttachments = &colorRef;
+        subpassDesc.pResolveAttachments = &resolveRef;
+        subpassDesc.pDepthStencilAttachment = &depthRef;
+
+        std::array<VkSubpassDependency, 2> subpassDep{};
+        subpassDep[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        subpassDep[0].dstSubpass = 0;
+        subpassDep[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        subpassDep[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        subpassDep[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        subpassDep[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        subpassDep[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        subpassDep[1].srcSubpass = 0;
+        subpassDep[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+        subpassDep[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        subpassDep[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        subpassDep[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        subpassDep[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        subpassDep[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        VkRenderPassCreateInfo renderPassCI = LeoVK::Init::RenderPassCreateInfo();
+        renderPassCI.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassCI.pAttachments = attachments.data();
+        renderPassCI.subpassCount = 1;
+        renderPassCI.pSubpasses = &subpassDesc;
+        renderPassCI.dependencyCount = static_cast<uint32_t>(subpassDep.size());
+        renderPassCI.pDependencies = subpassDep.data();
+
+        VK_CHECK(vkCreateRenderPass(mDevice, &renderPassCI, nullptr, &mRenderPass))
+    }
+    else
+    {
+        std::array<VkAttachmentDescription, 2> attachments = {};
+        // Color attachment
+        attachments[0].format = mSwapChain.mFormat;
+        attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        // Depth attachment
+        attachments[1].format = mDepthFormat;
+        attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorReference = {};
+        colorReference.attachment = 0;
+        colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthReference = {};
+        depthReference.attachment = 1;
+        depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpassDesc{};
+        subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassDesc.colorAttachmentCount = 1;
+        subpassDesc.pColorAttachments = &colorReference;
+        subpassDesc.pDepthStencilAttachment = &depthReference;
+        subpassDesc.inputAttachmentCount = 0;
+        subpassDesc.pInputAttachments = nullptr;
+        subpassDesc.preserveAttachmentCount = 0;
+        subpassDesc.pPreserveAttachments = nullptr;
+        subpassDesc.pResolveAttachments = nullptr;
+
+        // Subpass dependencies for layout transitions
+        std::array<VkSubpassDependency, 2> dependencies{};
+        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[0].dstSubpass = 0;
+        dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        dependencies[0].dependencyFlags = 0;
+
+        dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[1].dstSubpass = 0;
+        dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependencies[1].srcAccessMask = 0;
+        dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        dependencies[1].dependencyFlags = 0;
+
+        VkRenderPassCreateInfo renderPassCI = LeoVK::Init::RenderPassCreateInfo();
+        renderPassCI.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassCI.pAttachments = attachments.data();
+        renderPassCI.subpassCount = 1;
+        renderPassCI.pSubpasses = &subpassDesc;
+        renderPassCI.dependencyCount = static_cast<uint32_t>(dependencies.size());
+        renderPassCI.pDependencies = dependencies.data();
+
+        VK_CHECK(vkCreateRenderPass(mDevice, &renderPassCI, nullptr, &mRenderPass));
+    }
 }
 
 void VKRendererBase::GetEnabledFeatures()
@@ -696,37 +927,144 @@ void VKRendererBase::GetEnabledExtensions()
 
 void VKRendererBase::Prepare()
 {
+    if (mpVulkanDevice->mbEnableDebugMarkers) LeoVK::DebugMarker::Setup(mDevice);
 
+    initSwapChain();
+    createCommandPool();
+    setupSwapChain();
+    createCommandBuffers();
+    createSynchronizationPrimitives();
+    SetupDepthStencil();
+    SetupRenderPass();
+    createPipelineCache();
+    SetupFrameBuffer();
+
+    mSettings.overlay = mSettings.overlay && (!mBenchmark.mbActive);
+    if (mSettings.overlay)
+    {
+        mUIOverlay.mpDevice = mpVulkanDevice;
+        mUIOverlay.mQueue = mQueue;
+        mUIOverlay.mShaders = {
+            LoadShader(GetShadersPath() + "Base/UIOverlay.vert.spv", VK_SHADER_STAGE_VERTEX_BIT),
+            LoadShader(GetShadersPath() + "Base/UIOverlay.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT),
+        };
+        mUIOverlay.PrepareResources();
+        mUIOverlay.PreparePipeline(mPipelineCache, mRenderPass, mSwapChain.mFormat, mDepthFormat);
+    }
 }
 
-VkPipelineShaderStageCreateInfo VKRendererBase::LoadShader(std::string fileName, VkShaderStageFlagBits stage)
+VkPipelineShaderStageCreateInfo VKRendererBase::LoadShader(std::string filename, VkShaderStageFlagBits stage)
 {
-    return VkPipelineShaderStageCreateInfo();
+    VkPipelineShaderStageCreateInfo shaderStage {};
+    shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStage.stage = stage;
+    shaderStage.module = LeoVK::VKTools::LoadShader(filename.c_str(), mDevice);
+    shaderStage.pName = "main";
+
+    assert(shaderStage.module != VK_NULL_HANDLE);
+    mShaderModules.push_back(shaderStage.module);
+    return shaderStage;
 }
 
 void VKRendererBase::RenderLoop()
 {
+    if (mBenchmark.mbActive)
+    {
+        mBenchmark.Run([=] { Render(); }, mpVulkanDevice->mProperties);
+        vkDeviceWaitIdle(mDevice);
+        if (!mBenchmark.mFilename.empty()) mBenchmark.SaveResults();
+        return;
+    }
 
+    mDstWidth = mWidth;
+    mDstHeight = mHeight;
+    mLastTimestamp = std::chrono::high_resolution_clock::now();
+    mTPrevEnd = mLastTimestamp;
+
+    MSG msg;
+    bool quitMessageReceived = false;
+    while (!quitMessageReceived)
+    {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+            if (msg.message == WM_QUIT)
+            {
+                quitMessageReceived = true;
+                break;
+            }
+        }
+        if (mbPrepared && !IsIconic(mHwnd))
+        {
+            nextFrame();
+        }
+    }
+    // Flush device to make sure all resources can be freed
+    if (mDevice != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(mDevice);
+    }
 }
 
 void VKRendererBase::DrawUI(VkCommandBuffer commandBuffer)
 {
+    if (mSettings.overlay && mUIOverlay.mbVisible)
+    {
+        const VkViewport viewport = LeoVK::Init::Viewport((float)mWidth, (float)mHeight, 0.0f, 1.0f);
+        const VkRect2D scissor = LeoVK::Init::Rect2D((int)mWidth, (int)mHeight, 0, 0);
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+        mUIOverlay.Draw(commandBuffer);
+    }
 }
 
 void VKRendererBase::PrepareFrame()
 {
+    // Acquire the next image from the swap chain
+    VkResult result = mSwapChain.AcquireNextImage(mSemaphores.presentComplete, &mCurrentBuffer);
 
+    // Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE)
+    // SRS - If no longer optimal (VK_SUBOPTIMAL_KHR), wait until submitFrame() in case number of swapchain images will change on resize
+    if ((result == VK_ERROR_OUT_OF_DATE_KHR) || (result == VK_SUBOPTIMAL_KHR))
+    {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            windowResizing();
+        }
+        return;
+    }
+    else
+    {
+        VK_CHECK(result);
+    }
 }
 
 void VKRendererBase::SubmitFrame()
 {
+    VkResult result = mSwapChain.QueuePresent(mQueue, mCurrentBuffer, mSemaphores.renderComplete);
+    // Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE) or no longer optimal for presentation (SUBOPTIMAL)
 
+    if ((result == VK_ERROR_OUT_OF_DATE_KHR) || (result == VK_SUBOPTIMAL_KHR))
+    {
+        windowResizing();
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) return;
+    }
+    else
+    {
+        VK_CHECK(result);
+    }
+    VK_CHECK(vkQueueWaitIdle(mQueue));
 }
 
 void VKRendererBase::RenderFrame()
 {
-
+    VKRendererBase::PrepareFrame();
+    mSubmitInfo.commandBufferCount = 1;
+    mSubmitInfo.pCommandBuffers = &mDrawCmdBuffers[mCurrentBuffer];
+    VK_CHECK(vkQueueSubmit(mQueue, 1, &mSubmitInfo, VK_NULL_HANDLE));
+    VKRendererBase::SubmitFrame();
 }
 
 void VKRendererBase::OnUpdateUIOverlay(LeoVK::UIOverlay *overlay)
@@ -753,65 +1091,294 @@ std::string VKRendererBase::GetShadersPath() const
 // Private
 std::string VKRendererBase::getWindowTitle()
 {
-    return std::string();
+    return GetAssetsPath() + "Shaders/" + mShaderDir + "/";
 }
 
-void VKRendererBase::windowResize()
+void VKRendererBase::windowResizing()
 {
+    if (!mbPrepared) return;
+    mbPrepared = false;
 
+    vkDeviceWaitIdle(mDevice);
+    mWidth = mDstWidth;
+    mHeight = mDstHeight;
+    setupSwapChain();
+
+    if (mSettings.multiSampling)
+    {
+        vkDestroyImageView(mDevice, mMSTarget.color.imageView, nullptr);
+        vkDestroyImage(mDevice, mMSTarget.color.image, nullptr);
+        vkFreeMemory(mDevice, mMSTarget.color.memory, nullptr);
+        vkDestroyImageView(mDevice, mMSTarget.depth.imageView, nullptr);
+        vkDestroyImage(mDevice, mMSTarget.depth.image, nullptr);
+        vkFreeMemory(mDevice, mMSTarget.depth.memory, nullptr);
+    }
+    vkDestroyImageView(mDevice, mDepthStencil.imageView, nullptr);
+    vkDestroyImage(mDevice, mDepthStencil.image, nullptr);
+    vkFreeMemory(mDevice, mDepthStencil.memory, nullptr);
+    SetupDepthStencil();
+    for (auto & mFrameBuffer : mFrameBuffers)
+    {
+        vkDestroyFramebuffer(mDevice, mFrameBuffer, nullptr);
+    }
+    SetupFrameBuffer();
+
+    if (mSettings.overlay) mUIOverlay.Resize(mWidth, mHeight);
+
+    destroyCommandBuffers();
+    createCommandBuffers();
+    BuildCommandBuffers();
+
+    for (auto & fence : mWaitFences) vkDestroyFence(mDevice, fence, nullptr);
+
+    createSynchronizationPrimitives();
+
+    vkDeviceWaitIdle(mDevice);
+
+    mCamera.UpdateAspectRatio((float)mWidth / (float)mHeight);
+    WindowResized();
+    ViewChanged();
+
+    mbPrepared = true;
 }
 
 void VKRendererBase::handleMouseMove(int32_t x, int32_t y)
 {
+    int32_t dx = (int32_t)mMousePos.x - x;
+    int32_t dy = (int32_t)mMousePos.y - y;
 
+    bool handled = false;
+
+    if (mSettings.overlay)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        handled = io.WantCaptureMouse && mUIOverlay.mbVisible;
+    }
+    MouseMoved((float)x, (float)y, handled);
+
+    if (handled)
+    {
+        mMousePos = glm::vec2((float)x, (float)y);
+        return;
+    }
+
+    if (mMouseButtons.left)
+    {
+        mCamera.Rotate(glm::vec3((float)dy * mCamera.mRotationSpeed, -(float)dx * mCamera.mRotationSpeed, 0.0f));
+        mbViewUpdated = true;
+    }
+    if (mMouseButtons.right)
+    {
+        mCamera.Translate(glm::vec3(-0.0f, 0.0f, (float)dy * .005f));
+        mbViewUpdated = true;
+    }
+    if (mMouseButtons.middle)
+    {
+        mCamera.Translate(glm::vec3(-(float)dx * 0.005f, -(float)dy * 0.005f, 0.0f));
+        mbViewUpdated = true;
+    }
+    mMousePos = glm::vec2((float)x, (float)y);
 }
 
 void VKRendererBase::nextFrame()
 {
+    auto tStart = std::chrono::high_resolution_clock::now();
+    if (mbViewUpdated)
+    {
+        mbViewUpdated = false;
+        ViewChanged();
+    }
 
+    Render();
+    mFrameCounter++;
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+
+    mFrameTimer = (float)tDiff / 1000.0f;
+    mCamera.Update(mFrameTimer);
+    if (mCamera.Moving())
+    {
+        mbViewUpdated = true;
+    }
+    // Convert to clamped timer value
+    if (!mbPaused)
+    {
+        mTimer += mTimerSpeed * mFrameTimer;
+        if (mTimer > 1.0)
+        {
+            mTimer -= 1.0f;
+        }
+    }
+    float fpsTimer = (float)(std::chrono::duration<double, std::milli>(tEnd - mLastTimestamp).count());
+    if (fpsTimer > 1000.0f)
+    {
+        mLastFPS = static_cast<uint32_t>((float)mFrameCounter * (1000.0f / fpsTimer));
+
+        if (!mSettings.overlay)	{
+            std::string windowTitle = getWindowTitle();
+            SetWindowText(mHwnd, windowTitle.c_str());
+        }
+        mFrameCounter = 0;
+        mLastTimestamp = tEnd;
+    }
+    mTPrevEnd = tEnd;
+
+    // TODO: Cap UI overlay update rates
+    updateOverlay();
 }
 
 void VKRendererBase::updateOverlay()
 {
+    if (!mSettings.overlay) return;
 
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.DisplaySize = ImVec2((float)mWidth, (float)mHeight);
+    io.DeltaTime = mFrameTimer;
+
+    io.MousePos = ImVec2(mMousePos.x, mMousePos.y);
+    io.MouseDown[0] = mMouseButtons.left && mUIOverlay.mbVisible;
+    io.MouseDown[1] = mMouseButtons.right && mUIOverlay.mbVisible;
+    io.MouseDown[2] = mMouseButtons.middle && mUIOverlay.mbVisible;
+
+    ImGui::NewFrame();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+    ImGui::SetNextWindowPos(ImVec2(10 * mUIOverlay.mScale, 10 * mUIOverlay.mScale));
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+    ImGui::Begin("Vulkan Renderer", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::TextUnformatted(mTitle.c_str());
+    ImGui::TextUnformatted(mDeviceProps.deviceName);
+    ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / (float)mLastFPS), mLastFPS);
+
+    ImGui::PushItemWidth(110.0f * mUIOverlay.mScale);
+    OnUpdateUIOverlay(&mUIOverlay);
+    ImGui::PopItemWidth();
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::Render();
+
+    if (mUIOverlay.Update() || mUIOverlay.mbUpdated)
+    {
+        BuildCommandBuffers();
+        mUIOverlay.mbUpdated = false;
+    }
 }
 
 void VKRendererBase::createPipelineCache()
 {
-
+    VkPipelineCacheCreateInfo pipelineCacheCI {};
+    pipelineCacheCI.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    VK_CHECK(vkCreatePipelineCache(mDevice, &pipelineCacheCI, nullptr, &mPipelineCache));
 }
 
 void VKRendererBase::createCommandPool()
 {
-
+    VkCommandPoolCreateInfo cmdPoolCI = LeoVK::Init::CmdPoolCreateInfo();
+    cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmdPoolCI.queueFamilyIndex = mSwapChain.mQueueNodeIndex;
+    cmdPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VK_CHECK(vkCreateCommandPool(mDevice, &cmdPoolCI, nullptr, &mCmdPool))
 }
 
 void VKRendererBase::createSynchronizationPrimitives()
 {
-
+    // Wait fences to sync command buffer access
+    VkFenceCreateInfo fenceCI = LeoVK::Init::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
+    mWaitFences.resize(mDrawCmdBuffers.size());
+    for (auto& fence : mWaitFences)
+    {
+        VK_CHECK(vkCreateFence(mDevice, &fenceCI, nullptr, &fence));
+    }
 }
 
 void VKRendererBase::initSwapChain()
 {
-
+    mSwapChain.InitSurface(mHInstance, mHwnd);
 }
 
 void VKRendererBase::setupSwapChain()
 {
-
+    mSwapChain.Create(&mWidth, &mHeight, mSettings.vsync, mSettings.fullscreen);
 }
 
 void VKRendererBase::createCommandBuffers()
 {
+    mDrawCmdBuffers.resize(mSwapChain.mImageCount);
 
+    VkCommandBufferAllocateInfo cmdBufferAI = LeoVK::Init::CmdBufferAllocateInfo(
+        mCmdPool,
+        VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        static_cast<uint32_t>(mDrawCmdBuffers.size())
+        );
+    VK_CHECK(vkAllocateCommandBuffers(mDevice, &cmdBufferAI, mDrawCmdBuffers.data()))
 }
 
 void VKRendererBase::destroyCommandBuffers()
 {
-
+    vkFreeCommandBuffers(mDevice, mCmdPool, static_cast<uint32_t>(mDrawCmdBuffers.size()), mDrawCmdBuffers.data());
 }
 
 void VKRendererBase::setupRenderTarget(VkImage *image, VkImageView *imageView, VkDeviceMemory *memory, bool isDepth)
 {
+    VkImageCreateInfo imageCI = LeoVK::Init::ImageCreateInfo();
+    imageCI.imageType = VK_IMAGE_TYPE_2D;
+    imageCI.format = isDepth ? mDepthFormat : mSwapChain.mFormat;
+    imageCI.extent.width = mWidth;
+    imageCI.extent.height = mHeight;
+    imageCI.extent.depth = 1;
+    imageCI.mipLevels = 1;
+    imageCI.arrayLayers = 1;
+    imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCI.samples = mSettings.sampleCount;
+    imageCI.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT |
+                    (isDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+    imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VK_CHECK(vkCreateImage(
+        mDevice, &imageCI, nullptr,
+        isDepth ? &mMSTarget.depth.image : &mMSTarget.color.image))
 
+    VkMemoryRequirements memReqs{};
+    vkGetImageMemoryRequirements(mDevice, isDepth ? mMSTarget.depth.image : mMSTarget.color.image, &memReqs);
+
+    VkBool32 lazyMemTypePresent;
+    VkMemoryAllocateInfo memoryAI{};
+    memoryAI.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAI.allocationSize = memReqs.size;
+    memoryAI.memoryTypeIndex = mpVulkanDevice->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT, &lazyMemTypePresent);
+
+    if (!lazyMemTypePresent)
+    {
+        memoryAI.memoryTypeIndex = mpVulkanDevice->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    }
+    if (isDepth)
+    {
+        VK_CHECK(vkAllocateMemory(mDevice, &memoryAI, nullptr, &mMSTarget.depth.memory));
+        vkBindImageMemory(mDevice, mMSTarget.depth.image, mMSTarget.depth.memory, 0);
+    }
+    else
+    {
+        VK_CHECK(vkAllocateMemory(mDevice, &memoryAI, nullptr, &mMSTarget.color.memory));
+        vkBindImageMemory(mDevice, mMSTarget.color.image, mMSTarget.color.memory, 0);
+    }
+
+    // Create image view for the MSAA target
+    VkImageViewCreateInfo imageViewCI{};
+    imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    imageViewCI.image = isDepth ? mMSTarget.depth.image : mMSTarget.color.image;
+    imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    imageViewCI.format = isDepth ? mDepthFormat : mSwapChain.mFormat;
+    imageViewCI.components.r = VK_COMPONENT_SWIZZLE_R;
+    imageViewCI.components.g = VK_COMPONENT_SWIZZLE_G;
+    imageViewCI.components.b = VK_COMPONENT_SWIZZLE_B;
+    imageViewCI.components.a = VK_COMPONENT_SWIZZLE_A;
+    imageViewCI.subresourceRange.aspectMask = isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    imageViewCI.subresourceRange.levelCount = 1;
+    imageViewCI.subresourceRange.layerCount = 1;
+
+    VK_CHECK(vkCreateImageView(
+        mDevice, &imageViewCI, nullptr,
+        isDepth ? &mMSTarget.depth.imageView : &mMSTarget.color.imageView));
 }
