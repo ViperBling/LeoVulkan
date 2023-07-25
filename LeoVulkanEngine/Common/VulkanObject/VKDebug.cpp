@@ -1,4 +1,4 @@
-#include <sstream>
+﻿#include <sstream>
 #include "VKDebug.hpp"
 
 namespace LeoVK::Debug
