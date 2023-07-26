@@ -8,11 +8,43 @@
 #define ENABLE_VALIDATION true
 #define ENABLE_MSAA true
 
+struct SceneTextures
+{
+    LeoVK::TextureCube mEnvCube;
+    LeoVK::TextureCube mIrradianceCube;
+    LeoVK::TextureCube mPreFilterCube;
+    LeoVK::Texture2D mLUTBRDF;
+};
+
 struct RenderScene
 {
     LeoVK::GLTFScene mScene;
     LeoVK::GLTFScene mSkybox;
 };
+
+struct UBOBuffer
+{
+    LeoVK::Buffer mSceneUBO;
+    LeoVK::Buffer mSkyboxUBO;
+    LeoVK::Buffer mParamsUBO;
+};
+
+struct UBOMatrices
+{
+    glm::mat4 mProj;
+    glm::mat4 mModel;
+    glm::mat4 mView;
+    glm::mat4 mCamPos;
+};
+
+struct UBOParams
+{
+    glm::vec4 mLights[4];
+    float mExposure = 4.5f;
+    float mGamma = 2.2f;
+};
+
+
 
 class TestRenderer : public VKRendererBase
 {
@@ -34,6 +66,9 @@ public:
     void PreRender();
 
 public:
+    bool mbDisableSkybox = true;
+
+
     RenderScene mRenderScene;
 
 };

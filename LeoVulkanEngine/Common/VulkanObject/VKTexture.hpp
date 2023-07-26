@@ -22,6 +22,7 @@ namespace LeoVK
     class Texture
     {
     public:
+        void Create();
         void Destroy();
         void UpdateDescriptor();
         ktxResult LoadKTXFile(std::string filename, ktxTexture** target);

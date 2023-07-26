@@ -2,6 +2,11 @@
 
 namespace LeoVK
 {
+    void Texture::Create()
+    {
+
+    }
+
     void Texture::Destroy()
     {
         vkDestroyImageView(mpDevice->mLogicalDevice, mView, nullptr);
