@@ -48,6 +48,7 @@ function(buildProjects)
 endfunction(buildProjects)
 
 set(PROJECTS
+    TestRenderer
     VulkanRenderer
     )
 

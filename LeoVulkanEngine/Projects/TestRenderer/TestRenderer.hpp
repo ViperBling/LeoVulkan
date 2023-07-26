@@ -3,6 +3,7 @@
 #include "ProjectPCH.hpp"
 
 #include "VKRendererBase.hpp"
+#include "AssetsLoader.hpp"
 
 #define ENABLE_VALIDATION true
 #define ENABLE_MSAA true
@@ -13,11 +14,11 @@ struct RenderScene
     LeoVK::GLTFScene mSkybox;
 };
 
-class VulkanRenderer : public VKRendererBase
+class TestRenderer : public VKRendererBase
 {
 public:
-    VulkanRenderer(bool msaa, bool enableValidation);
-    virtual ~VulkanRenderer();
+    TestRenderer();
+    virtual ~TestRenderer();
     void GetEnabledFeatures() override;
     void BuildCommandBuffers() override;
     void Render() override;

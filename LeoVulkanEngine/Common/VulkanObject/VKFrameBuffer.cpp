@@ -141,7 +141,7 @@ namespace LeoVK
 	*
 	* @param magFilter Magnification filter for lookups
 	* @param minFilter Minification filter for lookups
-	* @param adressMode Addressing mode for the U,V and W coordinates
+	* @param addressMode Addressing mode for the U,V and W coordinates
 	*
 	* @return VkResult for the sampler creation
 	*/
