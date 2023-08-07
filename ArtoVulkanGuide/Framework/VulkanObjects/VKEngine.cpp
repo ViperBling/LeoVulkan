@@ -64,15 +64,18 @@ void VulkanEngine::CleanUp()
 
 void VulkanEngine::Draw()
 {
+    // 等GPU渲染完成最后一帧，超时1s
     VK_CHECK(vkWaitForFences(mDevice, 1, &mRenderFence, true, 1000000000));
     VK_CHECK(vkResetFences(mDevice, 1, &mRenderFence));
 
+    // 等到Fence同步后，可以确定命令执行完成，可以重置Command Buffer
     VK_CHECK(vkResetCommandBuffer(mCmdBuffer, 0));
 
+    // 从SwapChain中获取Image的Index
     uint32_t swapChainImageIdx;
     VK_CHECK(vkAcquireNextImageKHR(mDevice, mSwapChain, 1000000000, mPresentSem, nullptr, &swapChainImageIdx));
 
-    //begin the command buffer recording. We will use this command buffer exactly once, so we want to let vulkan know that
+    // 开始Command Buffer的录制，这里只使用一次用于显示
     VkCommandBufferBeginInfo cmdBI = VKInit::CmdBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     VK_CHECK(vkBeginCommandBuffer(mCmdBuffer, &cmdBI));
 
@@ -80,15 +83,21 @@ void VulkanEngine::Draw()
     float flash = abs(sin((float)mFrameIndex / 120.f));
     clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
 
+    // 在渲染前让Image变得可写
     transitionImage(mCmdBuffer, mSwapChainImages[swapChainImageIdx], ImageTransitionMode::IntoGeneral);
 
     VkImageSubresourceRange clearRange = VKInit::ImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(mCmdBuffer, mSwapChainImages[swapChainImageIdx], VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
 
+    // 写入东西后，让Image状态变成准备Present
     transitionImage(mCmdBuffer, mSwapChainImages[swapChainImageIdx], ImageTransitionMode::GeneralToPresent);
 
+    // 所有操作完成，可以关闭CommandBuffer，不能写入了，可以开始执行
     VK_CHECK(vkEndCommandBuffer(mCmdBuffer));
 
+    // 准备提交CommandBuffer到队列
+    // 需要在wait信号量上等待，它表示交换链在渲染前准备完毕
+    // 渲染完成后需要signal信号量
     VkCommandBufferSubmitInfo cmdBufferSI = VKInit::CmdBufferSubmitInfo(mCmdBuffer);
 
     VkSemaphoreSubmitInfo waitInfo = VKInit::SemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, mPresentSem);
@@ -96,8 +105,12 @@ void VulkanEngine::Draw()
 
     VkSubmitInfo2 submit = VKInit::SubmitInfo2(&cmdBufferSI, &signalInfo, &waitInfo);
 
+    // 提交命令到队列并执行
+    // renderFence会阻塞直到命令执行完成
     VK_CHECK(vkQueueSubmit2(mGraphicsQueue, 1, &submit, mRenderFence));
 
+    // 准备呈现，把刚才渲染的图片呈现到窗口
+    // 现在要等的是render信号量，确保渲染完成后才提交到窗口
     VkPresentInfoKHR presentInfo = VKInit::PresentInfo();
     presentInfo.pSwapchains = &mSwapChain;
     presentInfo.swapchainCount = 1;

@@ -26,6 +26,8 @@ private:
     void initDefaultRenderPass();
     void initFrameBuffers();
     void initCommands();
+    // 创建同步对象，一个Fence用于控制GPU合适完成渲染
+    // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
     void transitionImage(VkCommandBuffer cmdBuffer, VkImage image, ImageTransitionMode transitionMode);
 
