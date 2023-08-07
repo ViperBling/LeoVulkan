@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <queue>
+#include <functional>
 
 #include "VKTypes.hpp"
 
@@ -10,6 +12,25 @@ enum class ImageTransitionMode
     IntoGeneral,
     GeneralToPresent,
     AttachmentToPresent
+};
+
+struct DeletionQueue
+{
+    std::deque<std::function<void()>> mDeletors;
+
+    void PushFunction(std::function<void()>&& function)
+    {
+        mDeletors.push_back(function);
+    }
+
+    void Flush()
+    {
+        for (auto it = mDeletors.rbegin(); it != mDeletors.rend(); it++)
+        {
+            (*it)();
+        }
+        mDeletors.clear();
+    }
 };
 
 class VulkanEngine
@@ -26,10 +47,13 @@ private:
     void initDefaultRenderPass();
     void initFrameBuffers();
     void initCommands();
+    void initPipelines();
+    void initDescriptors();
     // 创建同步对象，一个Fence用于控制GPU合适完成渲染
     // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
-    void transitionImage(VkCommandBuffer cmdBuffer, VkImage image, ImageTransitionMode transitionMode);
+
+    bool loadShaderModule(const char* filepath, VkShaderModule* outShaderModule);
 
 public:
     bool mb_Initialized {false};
@@ -61,4 +85,18 @@ public:
     std::vector<VkFramebuffer> mFrameBuffers;
     std::vector<VkImage> mSwapChainImages;
     std::vector<VkImageView> mSwapChainImageViews;
+
+    VkDescriptorPool mDescPool;
+    VkPipeline mPipeline;
+    VkPipelineLayout mPipelineLayout;
+
+    VkDescriptorSet mDrawImageDesc;
+    VkDescriptorSetLayout mSwapChainImageDescLayout;
+
+    DeletionQueue mMainDeletionQueue;
+    VmaAllocator mAllocator;
+
+    VkImageView mDrawImageView;
+    AllocatedImage mDrawImage;
+    VkFormat mDrawFormat;
 };
