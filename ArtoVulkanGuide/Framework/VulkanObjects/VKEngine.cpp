@@ -183,8 +183,7 @@ void VulkanEngine::initVulkan()
 
     vkb::PhysicalDeviceSelector gpuSelector{ vkbInst };
     vkb::PhysicalDevice physicalDevice = gpuSelector
-        .set_minimum_version(1, 3)
-        .set_required_features_13(features)
+        .set_minimum_version(1, 1)
         .set_surface(mSurface)
         .select()
         .value();

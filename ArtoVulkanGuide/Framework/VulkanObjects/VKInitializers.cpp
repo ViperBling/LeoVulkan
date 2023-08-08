@@ -1,9 +1,7 @@
 #include "VKInitializers.hpp"
 
-namespace VKInit
-{
-    VkCommandPoolCreateInfo CmdPoolCreateInfo(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags)
-    {
+namespace VKInit {
+    VkCommandPoolCreateInfo CmdPoolCreateInfo(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
         VkCommandPoolCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         info.pNext = nullptr;
@@ -12,8 +10,7 @@ namespace VKInit
         return info;
     }
 
-    VkCommandBufferAllocateInfo CmdBufferAllocateInfo(VkCommandPool pool, uint32_t count, VkCommandBufferLevel level)
-    {
+    VkCommandBufferAllocateInfo CmdBufferAllocateInfo(VkCommandPool pool, uint32_t count, VkCommandBufferLevel level) {
         VkCommandBufferAllocateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         info.pNext = nullptr;
@@ -24,8 +21,7 @@ namespace VKInit
         return info;
     }
 
-    VkCommandBufferBeginInfo CmdBufferBeginInfo(VkCommandBufferUsageFlags flags)
-    {
+    VkCommandBufferBeginInfo CmdBufferBeginInfo(VkCommandBufferUsageFlags flags) {
         VkCommandBufferBeginInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         info.pNext = nullptr;
@@ -35,8 +31,7 @@ namespace VKInit
         return info;
     }
 
-    VkCommandBufferSubmitInfo CmdBufferSubmitInfo(VkCommandBuffer cmdBuffer)
-    {
+    VkCommandBufferSubmitInfo CmdBufferSubmitInfo(VkCommandBuffer cmdBuffer) {
         VkCommandBufferSubmitInfo cmdinfo{};
         cmdinfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
         cmdinfo.pNext = nullptr;
@@ -46,8 +41,7 @@ namespace VKInit
         return cmdinfo;
     }
 
-    VkFramebufferCreateInfo FrameBufferCreateInfo(VkRenderPass renderPass, VkExtent2D extent)
-    {
+    VkFramebufferCreateInfo FrameBufferCreateInfo(VkRenderPass renderPass, VkExtent2D extent) {
         VkFramebufferCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         info.pNext = nullptr;
@@ -61,8 +55,7 @@ namespace VKInit
         return info;
     }
 
-    VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags)
-    {
+    VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags) {
         VkFenceCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         info.pNext = nullptr;
@@ -72,8 +65,7 @@ namespace VKInit
         return info;
     }
 
-    VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags)
-    {
+    VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags) {
         VkSemaphoreCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         info.pNext = nullptr;
@@ -81,8 +73,7 @@ namespace VKInit
         return info;
     }
 
-    VkSubmitInfo SubmitInfo(VkCommandBuffer* cmdBuffer)
-    {
+    VkSubmitInfo SubmitInfo(VkCommandBuffer *cmdBuffer) {
         VkSubmitInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         info.pNext = nullptr;
@@ -98,13 +89,13 @@ namespace VKInit
         return info;
     }
 
-    VkSubmitInfo2 SubmitInfo2(VkCommandBufferSubmitInfo *cmdSubmit, VkSemaphoreSubmitInfo *signal, VkSemaphoreSubmitInfo *wait)
-    {
+    VkSubmitInfo2
+    SubmitInfo2(VkCommandBufferSubmitInfo *cmdSubmit, VkSemaphoreSubmitInfo *signal, VkSemaphoreSubmitInfo *wait) {
         VkSubmitInfo2 info = {};
         info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
         info.pNext = nullptr;
 
-        info.waitSemaphoreInfoCount = wait == nullptr? 0 : 1;
+        info.waitSemaphoreInfoCount = wait == nullptr ? 0 : 1;
         info.pWaitSemaphoreInfos = wait;
 
         info.signalSemaphoreInfoCount = signal == nullptr ? 0 : 1;
@@ -116,8 +107,7 @@ namespace VKInit
         return info;
     }
 
-    VkPresentInfoKHR PresentInfo()
-    {
+    VkPresentInfoKHR PresentInfo() {
         VkPresentInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         info.pNext = nullptr;
@@ -131,8 +121,7 @@ namespace VKInit
         return info;
     }
 
-    VkRenderPassBeginInfo RenderPassBeginInfo(VkRenderPass renderPass, VkExtent2D extent, VkFramebuffer frameBuffer)
-    {
+    VkRenderPassBeginInfo RenderPassBeginInfo(VkRenderPass renderPass, VkExtent2D extent, VkFramebuffer frameBuffer) {
         VkRenderPassBeginInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         info.pNext = nullptr;
@@ -148,8 +137,8 @@ namespace VKInit
         return info;
     }
 
-    VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const std::string& entry)
-    {
+    VkPipelineShaderStageCreateInfo
+    PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const std::string &entry) {
         VkPipelineShaderStageCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         info.pNext = nullptr;
@@ -160,8 +149,7 @@ namespace VKInit
         return info;
     }
 
-    VkPipelineVertexInputStateCreateInfo PipelineVIStateCreateInfo()
-    {
+    VkPipelineVertexInputStateCreateInfo PipelineVIStateCreateInfo() {
         VkPipelineVertexInputStateCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         info.pNext = nullptr;
@@ -172,8 +160,7 @@ namespace VKInit
         return info;
     }
 
-    VkPipelineInputAssemblyStateCreateInfo PipelineIAStateCreateInfo(VkPrimitiveTopology topology)
-    {
+    VkPipelineInputAssemblyStateCreateInfo PipelineIAStateCreateInfo(VkPrimitiveTopology topology) {
         VkPipelineInputAssemblyStateCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         info.pNext = nullptr;
@@ -183,10 +170,8 @@ namespace VKInit
         info.primitiveRestartEnable = VK_FALSE;
         return info;
     }
-    }
 
-    VkPipelineRasterizationStateCreateInfo PipelineRSStateCreateInfo(VkPolygonMode polygonMode)
-    {
+    VkPipelineRasterizationStateCreateInfo PipelineRSStateCreateInfo(VkPolygonMode polygonMode) {
         VkPipelineRasterizationStateCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         info.pNext = nullptr;
@@ -209,8 +194,7 @@ namespace VKInit
         return info;
     }
 
-    VkPipelineMultisampleStateCreateInfo PipelineMSStateCreateInfo()
-    {
+    VkPipelineMultisampleStateCreateInfo PipelineMSStateCreateInfo() {
         VkPipelineMultisampleStateCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         info.pNext = nullptr;
@@ -225,8 +209,7 @@ namespace VKInit
         return info;
     }
 
-    VkPipelineColorBlendAttachmentState PipelineCBAttachState()
-    {
+    VkPipelineColorBlendAttachmentState PipelineCBAttachState() {
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -235,8 +218,7 @@ namespace VKInit
         return colorBlendAttachment;
     }
 
-    VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo()
-    {
+    VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo() {
         VkPipelineLayoutCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         info.pNext = nullptr;
@@ -250,8 +232,7 @@ namespace VKInit
         return info;
     }
 
-    VkRenderingAttachmentInfo ColorAttachmentInfo(VkImageView view, VkClearValue clearValue, VkImageLayout layout)
-    {
+    VkRenderingAttachmentInfo ColorAttachmentInfo(VkImageView view, VkClearValue clearValue, VkImageLayout layout) {
         VkRenderingAttachmentInfo colorAttachment{};
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         colorAttachment.pNext = nullptr;
@@ -265,13 +246,12 @@ namespace VKInit
         return colorAttachment;
     }
 
-    VkRenderingInfo RenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo *colorAttachment)
-    {
+    VkRenderingInfo RenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo *colorAttachment) {
         VkRenderingInfo renderInfo{};
         renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
         renderInfo.pNext = nullptr;
 
-        renderInfo.renderArea = VkRect2D{ VkOffset2D{ 0, 0}, renderExtent };
+        renderInfo.renderArea = VkRect2D{VkOffset2D{0, 0}, renderExtent};
         renderInfo.layerCount = 1;
         renderInfo.colorAttachmentCount = 1;
         renderInfo.pColorAttachments = colorAttachment;
@@ -281,8 +261,7 @@ namespace VKInit
         return renderInfo;
     }
 
-    VkImageSubresourceRange ImageSubresourceRange(VkImageAspectFlags aspectMask)
-    {
+    VkImageSubresourceRange ImageSubresourceRange(VkImageAspectFlags aspectMask) {
         VkImageSubresourceRange subImage{};
         subImage.aspectMask = aspectMask;
         subImage.baseMipLevel = 0;
@@ -293,8 +272,7 @@ namespace VKInit
         return subImage;
     }
 
-    VkSemaphoreSubmitInfo SemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
-    {
+    VkSemaphoreSubmitInfo SemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore) {
         VkSemaphoreSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
@@ -306,8 +284,8 @@ namespace VKInit
         return submitInfo;
     }
 
-    VkDescriptorSetLayoutBinding DescSetLayoutBinding(VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t binding)
-    {
+    VkDescriptorSetLayoutBinding
+    DescSetLayoutBinding(VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t binding) {
         VkDescriptorSetLayoutBinding setBinding = {};
         setBinding.binding = binding;
         setBinding.descriptorCount = 1;
@@ -318,8 +296,8 @@ namespace VKInit
         return setBinding;
     }
 
-    VkWriteDescriptorSet WriteDescImage(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo *imageInfo, uint32_t binding)
-    {
+    VkWriteDescriptorSet
+    WriteDescImage(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo *imageInfo, uint32_t binding) {
         VkWriteDescriptorSet write = {};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         write.pNext = nullptr;
@@ -333,9 +311,8 @@ namespace VKInit
         return write;
     }
 
-    VkImageCreateInfo ImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent)
-    {
-        VkImageCreateInfo info = { };
+    VkImageCreateInfo ImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent) {
+        VkImageCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         info.pNext = nullptr;
 
@@ -353,8 +330,7 @@ namespace VKInit
         return info;
     }
 
-    VkImageViewCreateInfo ImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags)
-    {
+    VkImageViewCreateInfo ImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags) {
         //build a image-view for the depth image to use for rendering
         VkImageViewCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
