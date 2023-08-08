@@ -80,7 +80,7 @@ public:
 
     VkPipeline mTrianglePipeline;
     VkPipeline mRedTrianglePipeline;
-    VkPipelineLayout mPipelineLayout;
+    VkPipelineLayout mTrianglePipelineLayout;
 
     DeletionQueue mMainDeletionQueue;
 };

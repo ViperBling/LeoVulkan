@@ -11,9 +11,6 @@
 #include "VKInitializers.hpp"
 #include "VKImage.hpp"
 
-#define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
-
 constexpr bool bUseValidationLayers = true;
 
 void VulkanEngine::Init()
@@ -167,7 +164,7 @@ void VulkanEngine::initVulkan()
     auto inst = builder.set_app_name("Vulkan Engine")
         .request_validation_layers(bUseValidationLayers)
         .use_default_debug_messenger()
-        .require_api_version(1, 3, 0)
+        .require_api_version(1, 1, 0)
         .build();
 
     vkb::Instance vkbInst = inst.value();
@@ -175,14 +172,13 @@ void VulkanEngine::initVulkan()
     mInstance = vkbInst.instance;
     mDebugMessenger = vkbInst.debug_messenger;
 
-    SDL_Vulkan_CreateSurface(mWnd, mInstance, &mSurface);
+    if (!SDL_Vulkan_CreateSurface(mWnd, mInstance, &mSurface))
+    {
+        std::cerr << "Fail to create surface" << std::endl;
+    }
 
-    VkPhysicalDeviceVulkan13Features features{};
-    features.dynamicRendering = true;
-    features.synchronization2 = true;
-
-    vkb::PhysicalDeviceSelector gpuSelector{ vkbInst };
-    vkb::PhysicalDevice physicalDevice = gpuSelector
+    vkb::PhysicalDeviceSelector selector{ vkbInst };
+    vkb::PhysicalDevice physicalDevice = selector
         .set_minimum_version(1, 1)
         .set_surface(mSurface)
         .select()
@@ -267,10 +263,10 @@ void VulkanEngine::initFrameBuffers()
 {
     VkFramebufferCreateInfo fbCI = VKInit::FrameBufferCreateInfo(mRenderPass, mWndExtent);
 
-    const uint32_t swapChainImageCount = mSwapChainImages.size();
+    auto swapChainImageCount = static_cast<uint32_t>(mSwapChainImages.size());
     mFrameBuffers = std::vector<VkFramebuffer>(swapChainImageCount);
 
-    for (int i = 0; i < swapChainImageCount; i++)
+    for (uint32_t i = 0; i < swapChainImageCount; i++)
     {
         fbCI.pAttachments = &mSwapChainImageViews[i];
         VK_CHECK(vkCreateFramebuffer(mDevice, &fbCI, nullptr, &mFrameBuffers[i]));
@@ -321,7 +317,7 @@ void VulkanEngine::initPipelines()
     }
 
     VkPipelineLayoutCreateInfo pipelineLayoutCI = VKInit::PipelineLayoutCreateInfo();
-    VK_CHECK(vkCreatePipelineLayout(mDevice, &pipelineLayoutCI, nullptr, &mPipelineLayout));
+    VK_CHECK(vkCreatePipelineLayout(mDevice, &pipelineLayoutCI, nullptr, &mTrianglePipelineLayout));
 
     PipelineBuilder pipelineBuilder;
     pipelineBuilder.mShaderStageCIs.push_back(
@@ -344,7 +340,7 @@ void VulkanEngine::initPipelines()
     pipelineBuilder.mRSState = VKInit::PipelineRSStateCreateInfo(VK_POLYGON_MODE_FILL);
     pipelineBuilder.mMSState = VKInit::PipelineMSStateCreateInfo();
     pipelineBuilder.mCBAttach = VKInit::PipelineCBAttachState();
-    pipelineBuilder.mPipelineLayout = mPipelineLayout;
+    pipelineBuilder.mPipelineLayout = mTrianglePipelineLayout;
 
     mTrianglePipeline = pipelineBuilder.BuildPipeline(mDevice, mRenderPass);
 
@@ -365,7 +361,7 @@ void VulkanEngine::initPipelines()
     {
         vkDestroyPipeline(mDevice, mRedTrianglePipeline, nullptr);
         vkDestroyPipeline(mDevice, mTrianglePipeline, nullptr);
-        vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+        vkDestroyPipelineLayout(mDevice, mTrianglePipelineLayout, nullptr);
     });
 }
 

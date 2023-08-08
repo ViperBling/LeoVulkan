@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 
 #include "VKPipeline.hpp"
 
@@ -24,7 +24,7 @@ VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPa
     VkGraphicsPipelineCreateInfo pipelineCI{};
     pipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineCI.pNext = nullptr;
-    pipelineCI.stageCount = mShaderStageCIs.size();
+    pipelineCI.stageCount = static_cast<uint32_t>(mShaderStageCIs.size());
     pipelineCI.pStages = mShaderStageCIs.data();
     pipelineCI.pVertexInputState = &mVIState;
     pipelineCI.pInputAssemblyState = &mIAState;
