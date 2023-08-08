@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "VKTypes.hpp"
 
 namespace VKInit
@@ -9,11 +11,25 @@ namespace VKInit
     VkCommandBufferBeginInfo CmdBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
     VkCommandBufferSubmitInfo CmdBufferSubmitInfo(VkCommandBuffer cmdBuffer);
 
+    VkFramebufferCreateInfo FrameBufferCreateInfo(VkRenderPass renderPass, VkExtent2D extent);
+
     VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0);
     VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags = 0);
 
+    VkSubmitInfo SubmitInfo(VkCommandBuffer* cmdBuffer);
     VkSubmitInfo2 SubmitInfo2(VkCommandBufferSubmitInfo* cmdSubmit, VkSemaphoreSubmitInfo* signal, VkSemaphoreSubmitInfo* wait);
     VkPresentInfoKHR PresentInfo();
+
+    VkRenderPassBeginInfo RenderPassBeginInfo(VkRenderPass renderPass, VkExtent2D extent, VkFramebuffer frameBuffer);
+    VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const std::string& entry = "main");
+
+    VkPipelineVertexInputStateCreateInfo PipelineVIStateCreateInfo();
+    VkPipelineInputAssemblyStateCreateInfo PipelineIAStateCreateInfo(VkPrimitiveTopology topology);
+    VkPipelineRasterizationStateCreateInfo PipelineRSStateCreateInfo(VkPolygonMode polygonMode);
+    VkPipelineMultisampleStateCreateInfo PipelineMSStateCreateInfo();
+    VkPipelineColorBlendAttachmentState PipelineCBAttachState();
+
+    VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo();
 
     VkRenderingAttachmentInfo ColorAttachmentInfo(VkImageView view, VkClearValue clearValue, VkImageLayout layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingInfo RenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment);

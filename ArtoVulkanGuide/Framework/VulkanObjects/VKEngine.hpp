@@ -1,18 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 #include <queue>
 #include <functional>
 
 #include "VKTypes.hpp"
-
-enum class ImageTransitionMode
-{
-    IntoAttachment,
-    IntoGeneral,
-    GeneralToPresent,
-    AttachmentToPresent
-};
+#include "VKPipeline.hpp"
 
 struct DeletionQueue
 {
@@ -48,16 +41,15 @@ private:
     void initFrameBuffers();
     void initCommands();
     void initPipelines();
-    void initDescriptors();
     // 创建同步对象，一个Fence用于控制GPU合适完成渲染
     // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
-
     bool loadShaderModule(const char* filepath, VkShaderModule* outShaderModule);
 
 public:
     bool mb_Initialized {false};
     int mFrameIndex {0};
+    int mSelectedShader {0};
 
     VkExtent2D mWndExtent {1280, 720};
     struct SDL_Window* mWnd {nullptr};
@@ -86,17 +78,9 @@ public:
     std::vector<VkImage> mSwapChainImages;
     std::vector<VkImageView> mSwapChainImageViews;
 
-    VkDescriptorPool mDescPool;
-    VkPipeline mPipeline;
+    VkPipeline mTrianglePipeline;
+    VkPipeline mRedTrianglePipeline;
     VkPipelineLayout mPipelineLayout;
 
-    VkDescriptorSet mDrawImageDesc;
-    VkDescriptorSetLayout mSwapChainImageDescLayout;
-
     DeletionQueue mMainDeletionQueue;
-    VmaAllocator mAllocator;
-
-    VkImageView mDrawImageView;
-    AllocatedImage mDrawImage;
-    VkFormat mDrawFormat;
 };
