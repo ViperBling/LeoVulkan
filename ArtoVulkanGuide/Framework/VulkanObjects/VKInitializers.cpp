@@ -333,7 +333,7 @@ namespace VKInit
         return setBinding;
     }
 
-    VkWriteDescriptorSet WriteDescImage(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo *imageInfo, uint32_t binding)
+    VkWriteDescriptorSet WriteDesc(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo* imageInfo, VkDescriptorBufferInfo* bufferInfo, uint32_t binding)
     {
         VkWriteDescriptorSet write = {};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -343,7 +343,9 @@ namespace VKInit
         write.dstSet = dstSet;
         write.descriptorCount = 1;
         write.descriptorType = type;
+
         write.pImageInfo = imageInfo;
+        write.pBufferInfo = bufferInfo;
 
         return write;
     }

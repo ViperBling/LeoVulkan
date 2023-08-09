@@ -11,6 +11,8 @@
 #include "VKPipeline.hpp"
 #include "VKMesh.hpp"
 
+constexpr unsigned int FRAME_OVERLAP = 2;
+
 struct DeletionQueue
 {
     std::deque<std::function<void()>> mDeletors;
@@ -33,7 +35,7 @@ struct DeletionQueue
 struct MeshPushConstants
 {
     glm::vec4 mData;
-    glm::mat4 mMat;
+    glm::mat4 mMatrix;
 };
 
 struct Material
@@ -46,7 +48,45 @@ struct RenderScene
 {
     Mesh* mMesh;
     Material* mMaterial;
-    glm::mat4 mTransformMatrix;
+    glm::mat4 mTransform;
+};
+
+struct FrameData
+{
+    VkSemaphore mPresentSem, mRenderSem;
+    VkFence mRenderFence;
+
+    DeletionQueue mFrameDeletionQueue;
+
+    VkCommandPool mCmdPool;
+    VkCommandBuffer mCmdBuffer;
+
+    AllocatedBuffer mCameraBuffer;
+    VkDescriptorSet mGlobalDescSet;
+
+    AllocatedBuffer mSceneBuffer;
+    VkDescriptorSet mSceneDescSet;
+};
+
+struct GPUCameraData
+{
+    glm::mat4 mView;
+    glm::mat4 mProj;
+    glm::mat4 mVP;
+};
+
+struct UniformData
+{
+    glm::vec4 mFogColor;            // w is for exponent
+    glm::vec4 mFogDistance;         //x for min, y for max, zw unused.
+    glm::vec4 mAmbientColor;
+    glm::vec4 mSunLightDirection;   //w for sun power
+    glm::vec4 mSunLightColor;
+};
+
+struct GPUObjectData
+{
+    glm::mat4 mModelMatrix;
 };
 
 class VulkanEngine
@@ -68,6 +108,8 @@ private:
     // 创建同步对象，一个Fence用于控制GPU合适完成渲染
     // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
+    void initDescriptors();
+
     bool loadShaderModule(const char* filepath, VkShaderModule* outShaderModule);
     void loadMeshes();
     void uploadMesh(Mesh& mesh);
@@ -75,8 +117,13 @@ private:
     Material* createMaterial(VkPipeline pipeline, VkPipelineLayout pipelineLayout, const std::string& name);
     Material* getMaterial(const std::string& name);
     Mesh* getMesh(const std::string& name);
-
     void drawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, uint32_t count);
+
+    FrameData& getCurrentFrame();
+    FrameData& getLastFrame();
+
+    AllocatedBuffer createBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+    size_t padUniformBufferSize(size_t originalSize);
 
 public:
     bool mb_Initialized {false};
@@ -90,15 +137,12 @@ public:
     VkDebugUtilsMessengerEXT mDebugMessenger;
     VkPhysicalDevice mGPU;
     VkDevice mDevice;
+    VkPhysicalDeviceProperties mGPUProps;
 
-    VkSemaphore mPresentSem, mRenderSem;
-    VkFence mRenderFence;
+    FrameData mFrames[FRAME_OVERLAP];
 
     VkQueue mGraphicsQueue;
     uint32_t mGraphicsQueueFamily;
-
-    VkCommandPool mCmdPool;
-    VkCommandBuffer mCmdBuffer;
 
     VkRenderPass mRenderPass;
 
@@ -121,4 +165,11 @@ public:
     std::vector<RenderScene> mRenderScenes;
     std::unordered_map<std::string, Material> mMaterials;
     std::unordered_map<std::string, Mesh> mMeshes;
+
+    VkDescriptorPool mDescPool;
+    VkDescriptorSetLayout mGlobalDescSetLayout;
+    VkDescriptorSetLayout mSceneDescSetLayout;
+
+    UniformData mUniformParams;
+    AllocatedBuffer mUniformBuffer;
 };
