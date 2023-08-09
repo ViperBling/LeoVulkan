@@ -14,6 +14,12 @@
 		}                                                               \
 	} while (0)
 
+struct AllocatedBuffer
+{
+    VkBuffer mBuffer;
+    VmaAllocation mAllocation;
+};
+
 struct AllocatedImage
 {
     VkImage mImage;

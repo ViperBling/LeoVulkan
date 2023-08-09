@@ -1,11 +1,14 @@
 ﻿#pragma once
 
 #include <vector>
-#include <queue>
+#include <deque>
 #include <functional>
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "VKTypes.hpp"
 #include "VKPipeline.hpp"
+#include "VKMesh.hpp"
 
 struct DeletionQueue
 {
@@ -24,6 +27,12 @@ struct DeletionQueue
         }
         mDeletors.clear();
     }
+};
+
+struct MeshPushConstants
+{
+    glm::vec4 mData;
+    glm::mat4 mMat;
 };
 
 class VulkanEngine
@@ -45,6 +54,8 @@ private:
     // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
     bool loadShaderModule(const char* filepath, VkShaderModule* outShaderModule);
+    void loadMeshes();
+    void uploadMesh(Mesh& mesh);
 
 public:
     bool mb_Initialized {false};
@@ -80,7 +91,18 @@ public:
 
     VkPipeline mTrianglePipeline;
     VkPipeline mRedTrianglePipeline;
+    VkPipeline mMeshPipeline;
     VkPipelineLayout mTrianglePipelineLayout;
+    VkPipelineLayout mMeshPipelineLayout;
 
     DeletionQueue mMainDeletionQueue;
+
+    Mesh mTriangleMesh;
+    Mesh mMesh;
+
+    VmaAllocator mAllocator;
+
+    VkImageView mDSView;
+    AllocatedImage mDSImage;
+    VkFormat mDSFormat;
 };

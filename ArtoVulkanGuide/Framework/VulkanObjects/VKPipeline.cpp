@@ -32,6 +32,7 @@ VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPa
     pipelineCI.pRasterizationState = &mRSState;
     pipelineCI.pMultisampleState = &mMSState;
     pipelineCI.pColorBlendState = &cbStateCI;
+    pipelineCI.pDepthStencilState = &mDSState;
     pipelineCI.layout = mPipelineLayout;
     pipelineCI.renderPass = renderPass;
     pipelineCI.subpass = 0;

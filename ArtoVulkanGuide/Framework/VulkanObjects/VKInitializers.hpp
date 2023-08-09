@@ -28,6 +28,8 @@ namespace VKInit
     VkPipelineRasterizationStateCreateInfo PipelineRSStateCreateInfo(VkPolygonMode polygonMode);
     VkPipelineMultisampleStateCreateInfo PipelineMSStateCreateInfo();
     VkPipelineColorBlendAttachmentState PipelineCBAttachState();
+    VkPipelineDepthStencilStateCreateInfo PipelineDSStateCreateInfo(bool bDepthTest, bool bDepthWrite, VkCompareOp compareOp);
+
 
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo();
 

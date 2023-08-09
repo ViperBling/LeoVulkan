@@ -18,5 +18,6 @@ public:
     VkPipelineRasterizationStateCreateInfo       mRSState;
     VkPipelineColorBlendAttachmentState          mCBAttach;
     VkPipelineMultisampleStateCreateInfo         mMSState;
+    VkPipelineDepthStencilStateCreateInfo        mDSState;
     VkPipelineLayout                             mPipelineLayout;
 };
