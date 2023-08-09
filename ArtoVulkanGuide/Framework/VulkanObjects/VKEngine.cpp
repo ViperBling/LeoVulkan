@@ -172,6 +172,7 @@ void VulkanEngine::initVulkan()
     mInstance = vkbInst.instance;
     mDebugMessenger = vkbInst.debug_messenger;
 
+    // 这个函数在SDL2.26.5中无法成功创建Surface
     SDL_Vulkan_CreateSurface(mWnd, mInstance, &mSurface);
 
     vkb::PhysicalDeviceSelector selector{ vkbInst };
@@ -330,6 +331,7 @@ void VulkanEngine::initDefaultRenderPass()
 
 void VulkanEngine::initFrameBuffers()
 {
+    // 为SwapChain的Image创建FrameBuffer，它会把绑定RenderPass到Image用于渲染
     VkFramebufferCreateInfo fbCI = VKInit::FrameBufferCreateInfo(mRenderPass, mWndExtent);
 
     auto swapChainImageCount = static_cast<uint32_t>(mSwapChainImages.size());
@@ -392,6 +394,10 @@ void VulkanEngine::initPipelines()
     meshPipelineLayoutCI.pushConstantRangeCount = 1;
     meshPipelineLayoutCI.pPushConstantRanges = &pushConstant;
 
+    std::array<VkDescriptorSetLayout, 2> descSetLayouts = { mGlobalDescSetLayout, mSceneDescSetLayout };
+    meshPipelineLayoutCI.setLayoutCount = (uint32_t)descSetLayouts.size();
+    meshPipelineLayoutCI.pSetLayouts = descSetLayouts.data();
+
     VkPipelineLayout meshPipelineLayout;
     VK_CHECK(vkCreatePipelineLayout(mDevice, &meshPipelineLayoutCI, nullptr, &meshPipelineLayout));
 
@@ -420,6 +426,7 @@ void VulkanEngine::initPipelines()
     pipelineBuilder.mCBAttach = VKInit::PipelineCBAttachState();
     pipelineBuilder.mDSState = VKInit::PipelineDSStateCreateInfo(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
 
+    // Mesh Rendering
     VertexInputDesc viDesc = Vertex::GetVertexDesc();
     pipelineBuilder.mVIState.pVertexAttributeDescriptions = viDesc.mAttributes.data();
     pipelineBuilder.mVIState.vertexAttributeDescriptionCount = (uint32_t)viDesc.mAttributes.size();
@@ -470,7 +477,7 @@ void VulkanEngine::initSyncObjects()
     VkFenceCreateInfo fenceCI = VKInit::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
     VkSemaphoreCreateInfo semCI = VKInit::SemaphoreCreateInfo();
 
-    for (auto frame : mFrames)
+    for (auto & frame : mFrames)
     {
         VK_CHECK(vkCreateFence(mDevice, &fenceCI, nullptr, &frame.mRenderFence));
         mMainDeletionQueue.PushFunction([=]()

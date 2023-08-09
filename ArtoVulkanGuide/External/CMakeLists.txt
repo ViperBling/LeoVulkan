@@ -27,14 +27,9 @@ target_sources(tinyobjloader PRIVATE
 
 target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
-set(SDL2_DIR $ENV{VCPKG_PATH}/installed/x64-windows/share/sdl2)
-find_package(SDL2 CONFIG REQUIRED)
-
 add_library(sdl2 INTERFACE)
-# set(sdl2_DIR "SDL_PATH" CACHE PATH "Path to SDL2")
-
-# target_include_directories(sdl2 INTERFACE ${sdl2_DIR}/include ${sdl2_image_DIR}/include)
-# target_link_directories(sdl2 INTERFACE ${sdl2_DIR}/lib/x64 ${sdl2_image_DIR}/lib/x64)
+set(SDL2_DIR "${CMAKE_CURRENT_LIST_DIR}/SDL2/cmake")
+find_package(SDL2 CONFIG REQUIRED)
 
 target_link_libraries(sdl2 INTERFACE SDL2::SDL2 SDL2::SDL2main)
 
