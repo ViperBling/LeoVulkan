@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <deque>
+#include <iostream>
 #include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -35,6 +36,19 @@ struct MeshPushConstants
     glm::mat4 mMat;
 };
 
+struct Material
+{
+    VkPipeline mPipeline;
+    VkPipelineLayout  mPipelineLayout;
+};
+
+struct RenderScene
+{
+    Mesh* mMesh;
+    Material* mMaterial;
+    glm::mat4 mTransformMatrix;
+};
+
 class VulkanEngine
 {
 public:
@@ -50,6 +64,7 @@ private:
     void initFrameBuffers();
     void initCommands();
     void initPipelines();
+    void initScene();
     // 创建同步对象，一个Fence用于控制GPU合适完成渲染
     // 两个信号量来同步渲染和SwapChain
     void initSyncObjects();
@@ -57,12 +72,18 @@ private:
     void loadMeshes();
     void uploadMesh(Mesh& mesh);
 
+    Material* createMaterial(VkPipeline pipeline, VkPipelineLayout pipelineLayout, const std::string& name);
+    Material* getMaterial(const std::string& name);
+    Mesh* getMesh(const std::string& name);
+
+    void drawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, uint32_t count);
+
 public:
     bool mb_Initialized {false};
     int mFrameIndex {0};
     int mSelectedShader {0};
 
-    VkExtent2D mWndExtent {1280, 720};
+    VkExtent2D mWndExtent {1024, 576};
     struct SDL_Window* mWnd {nullptr};
 
     VkInstance mInstance;
@@ -89,20 +110,15 @@ public:
     std::vector<VkImage> mSwapChainImages;
     std::vector<VkImageView> mSwapChainImageViews;
 
-    VkPipeline mTrianglePipeline;
-    VkPipeline mRedTrianglePipeline;
-    VkPipeline mMeshPipeline;
-    VkPipelineLayout mTrianglePipelineLayout;
-    VkPipelineLayout mMeshPipelineLayout;
-
     DeletionQueue mMainDeletionQueue;
-
-    Mesh mTriangleMesh;
-    Mesh mMesh;
 
     VmaAllocator mAllocator;
 
     VkImageView mDSView;
     AllocatedImage mDSImage;
     VkFormat mDSFormat;
+
+    std::vector<RenderScene> mRenderScenes;
+    std::unordered_map<std::string, Material> mMaterials;
+    std::unordered_map<std::string, Mesh> mMeshes;
 };
