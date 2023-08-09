@@ -21,7 +21,7 @@ namespace VKInit
     VkPresentInfoKHR PresentInfo();
 
     VkRenderPassBeginInfo RenderPassBeginInfo(VkRenderPass renderPass, VkExtent2D extent, VkFramebuffer frameBuffer);
-    VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const std::string& entry = "main");
+    VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry = "main");
 
     VkPipelineVertexInputStateCreateInfo PipelineVIStateCreateInfo();
     VkPipelineInputAssemblyStateCreateInfo PipelineIAStateCreateInfo(VkPrimitiveTopology topology);

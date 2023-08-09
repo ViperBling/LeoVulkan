@@ -37,7 +37,7 @@ VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPa
     pipelineCI.subpass = 0;
     pipelineCI.basePipelineHandle = VK_NULL_HANDLE;
 
-    VkPipeline  newPipeline;
+    VkPipeline newPipeline;
     if (vkCreateGraphicsPipelines(
         device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &newPipeline) != VK_SUCCESS)
     {
