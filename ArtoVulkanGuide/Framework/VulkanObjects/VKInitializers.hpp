@@ -30,7 +30,6 @@ namespace VKInit
     VkPipelineColorBlendAttachmentState PipelineCBAttachState();
     VkPipelineDepthStencilStateCreateInfo PipelineDSStateCreateInfo(bool bDepthTest, bool bDepthWrite, VkCompareOp compareOp);
 
-
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo();
 
     VkRenderingAttachmentInfo ColorAttachmentInfo(VkImageView view, VkClearValue clearValue, VkImageLayout layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -44,4 +43,5 @@ namespace VKInit
     VkWriteDescriptorSet WriteDesc(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo* imageInfo, VkDescriptorBufferInfo* bufferInfo, uint32_t binding);
     VkImageCreateInfo ImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
     VkImageViewCreateInfo ImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
+    VkSamplerCreateInfo SamplerCreateInfo(VkFilter filters, VkSamplerAddressMode samplerAddressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }

@@ -16,17 +16,18 @@ struct VertexInputDesc
 
 struct Vertex
 {
+    static VertexInputDesc GetVertexDesc();
+
     glm::vec3 mPosition;
     glm::vec3 mNormal;
     glm::vec3 mColor;
-
-    static VertexInputDesc GetVertexDesc();
+    glm::vec2 mUV;
 };
 
 struct Mesh
 {
+    bool LoadFromOBJ(const char* filename);
+
     std::vector<Vertex> mVertices;
     AllocatedBuffer mVertexBuffer;
-
-    bool LoadFromOBJ(const char* filename);
 };
