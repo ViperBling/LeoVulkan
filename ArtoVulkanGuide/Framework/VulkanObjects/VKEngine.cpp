@@ -210,7 +210,21 @@ size_t VulkanEngine::PadUniformBufferSize(size_t originalSize)
 
 void VulkanEngine::ImmediateSubmit(std::function<void(VkCommandBuffer cmdBuffer)>&& function)
 {
+    VkCommandBuffer cmdBuffer = mUploadContext.mCmdBuffer;
+    VkCommandBufferBeginInfo cmdBufferBI = VKInit::CmdBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
+    VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBufferBI));
+
+    function(cmdBuffer);
+
+    VK_CHECK(vkEndCommandBuffer(cmdBuffer));
+
+    VkSubmitInfo submitInfo = VKInit::SubmitInfo(&cmdBuffer);
+    VK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mUploadContext.mUploadFence));
+
+    vkWaitForFences(mDevice, 1, &mUploadContext.mUploadFence, true, 9999999999);
+    vkResetFences(mDevice, 1, &mUploadContext.mUploadFence);
+    vkResetCommandPool(mDevice, mUploadContext.mCmdPool, 0);
 }
 
 void VulkanEngine::initVulkan()
@@ -473,12 +487,11 @@ void VulkanEngine::initPipelines()
     VK_CHECK(vkCreatePipelineLayout(mDevice, &meshPipelineLayoutCI, nullptr, &meshPipelineLayout));
 
     std::array<VkDescriptorSetLayout, 3> texDescSetLayouts = { mGlobalDescSetLayout, mSceneDescSetLayout, mTextureDescSetLayout };
-    VkPipelineLayoutCreateInfo  texPipelineLayoutCI = VKInit::PipelineLayoutCreateInfo();
+    VkPipelineLayoutCreateInfo texPipelineLayoutCI = meshPipelineLayoutCI;
     texPipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(texDescSetLayouts.size());
     texPipelineLayoutCI.pSetLayouts = texDescSetLayouts.data();
     VkPipelineLayout texPipelineLayout;
     VK_CHECK(vkCreatePipelineLayout(mDevice, &texPipelineLayoutCI, nullptr, &texPipelineLayout));
-
 
     PipelineBuilder pipelineBuilder;
     pipelineBuilder.mShaderStageCIs.push_back(
@@ -938,6 +951,11 @@ void VulkanEngine::DrawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, ui
             uint32_t uniformOffset = PadUniformBufferSize((uint32_t)sizeof(UniformData)) * frameIdx;
             vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, scene.mMaterial->mPipelineLayout, 0, 1, &GetCurrentFrame().mGlobalDescSet, 1, &uniformOffset);
             vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, scene.mMaterial->mPipelineLayout, 1, 1, &GetCurrentFrame().mSceneDescSet, 0, nullptr);
+
+            if (scene.mMaterial->mTexSet != VK_NULL_HANDLE)
+            {
+                vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, scene.mMaterial->mPipelineLayout, 2, 1, &scene.mMaterial->mTexSet, 0, nullptr);
+            }
         }
 
         glm::mat4 model = scene.mTransform;
@@ -961,5 +979,15 @@ void VulkanEngine::DrawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, ui
 
 void VulkanEngine::loadImages()
 {
+    Texture tex{};
+    VKUtil::LoadImageFromFile(*this, "../../Assets/Textures/lost_empire-RGBA.png", tex.mImage);
 
+    VkImageViewCreateInfo imageCI = VKInit::ImageViewCreateInfo(VK_FORMAT_R8G8B8A8_SRGB, tex.mImage.mImage, VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCreateImageView(mDevice, &imageCI, nullptr, &tex.mImageView);
+
+    mMainDeletionQueue.PushFunction([=]()
+    {
+        vkDestroyImageView(mDevice, tex.mImageView, nullptr);
+    });
+    mTextures["EmpireDiffuse"] = tex;
 }

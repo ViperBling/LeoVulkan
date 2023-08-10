@@ -22,7 +22,7 @@ namespace VKUtil
         void* pixelPtr = pixels;
         VkDeviceSize imageSize = texW * texH * 4;
         VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        AllocatedBuffer stagingBuffer = engine.CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_COPY);
+        AllocatedBuffer stagingBuffer = engine.CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 
         void* data;
         vmaMapMemory(engine.mAllocator, stagingBuffer.mAllocation, &data);
