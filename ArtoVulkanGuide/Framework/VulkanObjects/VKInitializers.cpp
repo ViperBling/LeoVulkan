@@ -388,4 +388,19 @@ namespace VKInit
 
         return info;
     }
+
+    VkSamplerCreateInfo SamplerCreateInfo(VkFilter filters, VkSamplerAddressMode samplerAddressMode)
+    {
+        VkSamplerCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        info.pNext = nullptr;
+
+        info.magFilter = filters;
+        info.minFilter = filters;
+        info.addressModeU = samplerAddressMode;
+        info.addressModeV = samplerAddressMode;
+        info.addressModeW = samplerAddressMode;
+
+        return info;
+    }
 }

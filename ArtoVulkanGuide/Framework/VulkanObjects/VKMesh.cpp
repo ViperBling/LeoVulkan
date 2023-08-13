@@ -21,23 +21,31 @@ VertexInputDesc Vertex::GetVertexDesc()
     positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     positionAttribute.offset = offsetof(Vertex, mPosition);
 
-    //Normal will be stored at Location 1
+    // Normal will be stored at Location 1
     VkVertexInputAttributeDescription normalAttribute = {};
     normalAttribute.binding = 0;
     normalAttribute.location = 1;
     normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     normalAttribute.offset = offsetof(Vertex, mNormal);
 
-    //Position will be stored at Location 2
+    // Position will be stored at Location 2
     VkVertexInputAttributeDescription colorAttribute = {};
     colorAttribute.binding = 0;
     colorAttribute.location = 2;
     colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     colorAttribute.offset = offsetof(Vertex, mColor);
 
+    // UV will be stored at Location 3
+    VkVertexInputAttributeDescription uvAttribute = {};
+    uvAttribute.binding = 0;
+    uvAttribute.location = 3;
+    uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+    uvAttribute.offset = offsetof(Vertex, mUV);
+
     viDesc.mAttributes.push_back(positionAttribute);
     viDesc.mAttributes.push_back(normalAttribute);
     viDesc.mAttributes.push_back(colorAttribute);
+    viDesc.mAttributes.push_back(uvAttribute);
 
     return viDesc;
 }
@@ -81,12 +89,16 @@ bool Mesh::LoadFromOBJ(const char* filename)
                 tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
                 tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
                 tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
+                //vertex uv
+                tinyobj::real_t ux = attrib.texcoords[2 * idx.texcoord_index + 0];
+                tinyobj::real_t uy = attrib.texcoords[2 * idx.texcoord_index + 1];
 
                 // copy to vertex struct
                 Vertex newVert{};
                 newVert.mPosition = glm::vec3(vx, vy, vz);
                 newVert.mNormal = glm::vec3(nx, ny, nz);
                 newVert.mColor = newVert.mNormal;
+                newVert.mUV = glm::vec2(ux, 1 - uy);
 
                 mVertices.push_back(newVert);
             }

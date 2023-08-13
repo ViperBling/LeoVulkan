@@ -13,25 +13,6 @@
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
-struct DeletionQueue
-{
-    std::deque<std::function<void()>> mDeletors;
-
-    void PushFunction(std::function<void()>&& function)
-    {
-        mDeletors.push_back(function);
-    }
-
-    void Flush()
-    {
-        for (auto it = mDeletors.rbegin(); it != mDeletors.rend(); it++)
-        {
-            (*it)();
-        }
-        mDeletors.clear();
-    }
-};
-
 struct MeshPushConstants
 {
     glm::vec4 mData;
@@ -40,8 +21,15 @@ struct MeshPushConstants
 
 struct Material
 {
-    VkPipeline mPipeline;
-    VkPipelineLayout  mPipelineLayout;
+    VkDescriptorSet mTexSet = VK_NULL_HANDLE;
+    VkPipeline mPipeline = VK_NULL_HANDLE;;
+    VkPipelineLayout  mPipelineLayout = VK_NULL_HANDLE;;
+};
+
+struct Texture
+{
+    AllocatedImage mImage;
+    VkImageView mImageView;
 };
 
 struct RenderScene
@@ -66,6 +54,13 @@ struct FrameData
 
     AllocatedBuffer mSceneBuffer;
     VkDescriptorSet mSceneDescSet;
+};
+
+struct UploadContext
+{
+    VkFence mUploadFence;
+    VkCommandPool mCmdPool;
+    VkCommandBuffer mCmdBuffer;
 };
 
 struct GPUCameraData
@@ -97,6 +92,19 @@ public:
     void Draw();
     void Run();
 
+    FrameData& GetCurrentFrame();
+    FrameData& GetLastFrame();
+
+    Material* CreateMaterial(VkPipeline pipeline, VkPipelineLayout pipelineLayout, const std::string& name);
+    Material* GetMaterial(const std::string& name);
+    Mesh* GetMesh(const std::string& name);
+    void DrawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, uint32_t count);
+
+    AllocatedBuffer CreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+    size_t PadUniformBufferSize(size_t originalSize);
+
+    void ImmediateSubmit(std::function<void(VkCommandBuffer cmdBuffer)>&& function);
+
 private:
     void initVulkan();
     void initSwapChain();
@@ -113,17 +121,7 @@ private:
     bool loadShaderModule(const char* filepath, VkShaderModule* outShaderModule);
     void loadMeshes();
     void uploadMesh(Mesh& mesh);
-
-    Material* createMaterial(VkPipeline pipeline, VkPipelineLayout pipelineLayout, const std::string& name);
-    Material* getMaterial(const std::string& name);
-    Mesh* getMesh(const std::string& name);
-    void drawObjects(VkCommandBuffer cmdBuffer, RenderScene* first, uint32_t count);
-
-    FrameData& getCurrentFrame();
-    FrameData& getLastFrame();
-
-    AllocatedBuffer createBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-    size_t padUniformBufferSize(size_t originalSize);
+    void loadImages();
 
 public:
     bool mb_Initialized {false};
@@ -165,11 +163,15 @@ public:
     std::vector<RenderScene> mRenderScenes;
     std::unordered_map<std::string, Material> mMaterials;
     std::unordered_map<std::string, Mesh> mMeshes;
+    std::unordered_map<std::string, Texture> mTextures;
 
     VkDescriptorPool mDescPool;
     VkDescriptorSetLayout mGlobalDescSetLayout;
     VkDescriptorSetLayout mSceneDescSetLayout;
+    VkDescriptorSetLayout mTextureDescSetLayout;
 
     UniformData mUniformParams;
     AllocatedBuffer mUniformBuffer;
+
+    UploadContext mUploadContext;
 };

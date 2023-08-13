@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <deque>
+#include <functional>
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
@@ -13,6 +16,25 @@
 			abort();                                                    \
 		}                                                               \
 	} while (0)
+
+struct DeletionQueue
+{
+    std::deque<std::function<void()>> mDeletors;
+
+    void PushFunction(std::function<void()>&& function)
+    {
+        mDeletors.push_back(function);
+    }
+
+    void Flush()
+    {
+        for (auto it = mDeletors.rbegin(); it != mDeletors.rend(); it++)
+        {
+            (*it)();
+        }
+        mDeletors.clear();
+    }
+};
 
 struct AllocatedBuffer
 {
