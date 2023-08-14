@@ -3,11 +3,15 @@ include(ExternalProject)
 
 add_library(glm INTERFACE)
 add_library(vma INTERFACE)
+#both vma and glm and header only libs so we only need the include path
+target_include_directories(vma INTERFACE vma)
+target_include_directories(glm INTERFACE glm )
 
 add_library(stb_image INTERFACE)
-target_include_directories(stb_image INTERFACE stb_image)
+target_include_directories(stb_image INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/stb_image")
 
 add_library(json INTERFACE)
+target_include_directories(json INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/nlohmann_json" )
 
 add_library(tinyobjloader STATIC)
 target_sources(tinyobjloader PRIVATE
@@ -30,10 +34,9 @@ add_library(lz4 STATIC)
 target_sources(lz4 PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/lz4/lz4.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/lz4/lz4.c")
+target_include_directories(lz4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lz4")
 
-#both vma and glm and header only libs so we only need the include path
-target_include_directories(vma INTERFACE vma)
-target_include_directories(glm INTERFACE glm)
+
 
 target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
