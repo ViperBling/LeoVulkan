@@ -36,8 +36,6 @@ target_sources(lz4 PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/lz4/lz4.c")
 target_include_directories(lz4 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lz4")
 
-
-
 target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
 add_library(sdl2 INTERFACE)
@@ -45,6 +43,9 @@ set(SDL2_DIR "${CMAKE_CURRENT_LIST_DIR}/SDL2/cmake")
 find_package(SDL2 CONFIG REQUIRED)
 
 target_link_libraries(sdl2 INTERFACE SDL2::SDL2 SDL2::SDL2main)
+
+add_subdirectory(fastgltf)
+add_subdirectory(tinygltfloader)
 
 ExternalProject_Add(nvtools
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools"
@@ -54,20 +55,20 @@ ExternalProject_Add(nvtools
 add_library(nvtt INTERFACE)
 target_include_directories(nvtt INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools/src/nvtt")
 
-set(nvttfolder "${CMAKE_CURRENT_SOURCE_DIR}/nvLibs/$<IF:$<CONFIG:Debug>,Debug,Release>")
+set(nvttFolder "${CMAKE_CURRENT_SOURCE_DIR}/nvLibs/$<IF:$<CONFIG:Debug>,Debug,Release>")
 
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvtt.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/bc6h.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/bc7.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/EtcLib.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvcore.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvimage.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvmath.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvsquish.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/nvthread.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/posh.lib")
-target_link_libraries(nvtt INTERFACE "${nvttfolder}/rg_etc1.lib")
-#target_link_libraries(nvtt INTERFACE "${nvttfolder}/squish.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvtt.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/bc6h.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/bc7.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/EtcLib.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvcore.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvimage.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvmath.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvsquish.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/nvthread.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/posh.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/rg_etc1.lib")
+target_link_libraries(nvtt INTERFACE "${nvttFolder}/squishd.lib")
 #add_subdirectory(nvidia-texture-tools)
 
 set(TRACY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tracy" CACHE FILEPATH "Path to Tracy")
